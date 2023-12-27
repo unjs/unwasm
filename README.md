@@ -4,25 +4,26 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![Codecov][codecov-src]][codecov-href]
 
-Univeral [WebAssembly](https://webassembly.org/) tools for JavaScript.
-
-> [!IMPORTANT]
-> This Project is under development!
+Universal [WebAssembly](https://webassembly.org/) tools for JavaScript.
 
 ## Goal
 
-This project aims to make common and future-proof solution for WebAssembly modules support suitable for various JavaScript runtimes, Frameworks and build Tools following [WebAssembly/ES Module Integration](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) proposal from WebAssembly Community Group as much as possible.
+This project aims to make a common and future-proof solution for WebAssembly modules support suitable for various JavaScript runtimes, Frameworks, and build Tools following [WebAssembly/ES Module Integration](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) proposal from WebAssembly Community Group as much as possible.
 
 ## Roadmap
 
-The development of this project will be splited into multiple stages.
+The development will be split into multiple stages.
 
-- [ ] Universal builder plugins built with [unjs/unplugin](https://github.com/unjs/unplugin)
+> [!IMPORTANT]
+> This Project is under development! Join the linked discussions to be involved!
+
+- [ ] Universal builder plugins ([unjs/unwasm#2](https://github.com/unjs/unwasm/issues/2)) built with [unjs/unplugin](https://github.com/unjs/unplugin) 
   - [x] Rollup
-- [ ] Tools to operate and inspect `.wasm` files
-- [ ] Runtime utils
-- [ ] ESM loader for Node.js and other JavaScript runtimes
-- [ ] Integration with [Wasmer](https://github.com/wasmerio)
+- [ ] Tools to operate and inspect `.wasm` files ([unjs/unwasm#3](https://github.com/unjs/unwasm/issues/3)) 
+- [ ] Runtime utils ([unjs/unwasm#4](https://github.com/unjs/unwasm/issues/4)) 
+- [ ] ESM loader for Node.js and other JavaScript runtimes ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
+- [ ] Integration with [Wasmer](https://github.com/wasmerio) ([unjs/unwasm#6](https://github.com/unjs/unwasm/issues/6)) 
+- [ ] Convention and tools for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
 
 ## Install
 
@@ -66,7 +67,7 @@ export default {
 ## Development
 
 - Clone this repository
-- Install latest LTS version of [Node.js](https://nodejs.org/en/)
+- Install the latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
 - Install dependencies using `pnpm install`
 - Run interactive tests using `pnpm dev`
