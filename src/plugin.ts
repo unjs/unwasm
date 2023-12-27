@@ -7,7 +7,7 @@ import { sha1 } from "./_utils";
 
 const WASM_EXTERNAL_ID = "\0unwasm:external:";
 
-export interface WasmOptions {
+export interface UnwasmPluginOptions {
   /**
    * Direct import the wasm file instead of bundling, required in Cloudflare Workers
    *
@@ -23,7 +23,7 @@ export interface WasmOptions {
   lazy?: boolean;
 }
 
-const unplugin = createUnplugin<WasmOptions>((opts) => {
+const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
   type WasmAsset = {
     name: string;
     source: Buffer;
@@ -147,7 +147,7 @@ const unplugin = createUnplugin<WasmOptions>((opts) => {
   };
 });
 
-const rollup = unplugin.rollup as (opts: WasmOptions) => RollupPlugin;
+const rollup = unplugin.rollup as (opts: UnwasmPluginOptions) => RollupPlugin;
 
 export default {
   rollup,
