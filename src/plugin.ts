@@ -5,7 +5,8 @@ import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
 import { createUnplugin } from "unplugin";
 import { sha1 } from "./_utils";
 
-const WASM_EXTERNAL_ID = "\0unwasm:external:";
+const UNWASM_EXTERNAL_PREFIX = "\0unwasm:external:";
+const UMWASM_HELPERS_ID = "\0unwasm:helpers";
 
 export interface UnwasmPluginOptions {
   /**
@@ -35,7 +36,10 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
     name: "unwasm",
     rollup: {
       async resolveId(id, importer) {
-        if (id.startsWith(WASM_EXTERNAL_ID)) {
+        if (id === UMWASM_HELPERS_ID) {
+          return id;
+        }
+        if (id.startsWith(UNWASM_EXTERNAL_PREFIX)) {
           return {
             id,
             external: true,
@@ -43,12 +47,12 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         }
         if (id.endsWith(".wasm")) {
           const r = await this.resolve(id, importer, { skipSelf: true });
-          if (r?.id && r?.id !== id) {
+          if (r?.id && r.id !== id) {
             return {
               id: r.id.startsWith("file://") ? r.id.slice(7) : r.id,
               external: false,
               moduleSideEffects: false,
-              syntheticNamedExports: false,
+              syntheticNamedExports: true,
             };
           }
         }
@@ -66,6 +70,9 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       },
     },
     async load(id) {
+      if (id === UMWASM_HELPERS_ID) {
+        return getPluginUtils();
+      }
       if (!id.endsWith(".wasm") || !existsSync(id)) {
         return;
       }
@@ -83,28 +90,64 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       if (!asset) {
         return;
       }
-      let _dataStr: string;
-      if (opts.esmImport) {
-        _dataStr = `await import("${WASM_EXTERNAL_ID}${id}").then(r => r?.default || r)`;
-      } else {
-        const base64Str = asset.source.toString("base64");
-        _dataStr = `(()=>{const d=atob("${base64Str}");const s=d.length;const b=new Uint8Array(s);for(let i=0;i<s;i++)b[i]=d.charCodeAt(i);return b})()`;
-      }
-      let _str = `await WebAssembly.instantiate(${_dataStr}, { env: { "Math.random": () => Math.random, "Math.floor": () => Math.floor } }).then(r => r?.exports||r?.instance?.exports || r);`;
-      if (opts.lazy) {
-        _str = `(()=>{const e=async()=>{return ${_str}};let _p;const p=()=>{if(!_p)_p=e();return _p;};return {then:cb=>p().then(cb),catch:cb=>p().catch(cb)}})()`;
-      }
+
+      const envCode: string = opts.esmImport
+        ? `
+async function _instantiate(imports) {
+  const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${id}").then(r => r.default || r);
+  return WebAssembly.instantiate(_mod, imports)
+}
+`
+        : `
+import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
+
+function _instantiate(imports) {
+  const _mod = base64ToUint8Array("${asset.source.toString("base64")}")
+  return WebAssembly.instantiate(_mod, imports)
+}
+        `;
+
+      const code = `${envCode}
+const _defaultImports = Object.create(null);
+
+// TODO: For testing only
+Object.assign(_defaultImports, { env: { "seed": () =>  () => Date.now() * Math.random() } })
+
+const instancePromises = new WeakMap();
+function instantiate(imports = _defaultImports) {
+  let p = instancePromises.get(imports);
+  if (!p) {
+    p = _instantiate(imports);
+    instancePromises.set(imports, p);
+  }
+  return p;
+}
+
+const _instance = instantiate();
+const _exports = _instance.then(r => r?.instance?.exports || r?.exports || r);
+
+export default ${opts.lazy ? "" : "await "} _exports;
+      `;
+
       return {
-        code: `export default ${_str};`,
+        code,
         map: { mappings: "" },
         syntheticNamedExports: true,
       };
     },
     renderChunk(code: string, chunk: RenderedChunk) {
+      if (!opts.esmImport) {
+        return;
+      }
+
       if (
-        !chunk.moduleIds.some((id) => id.endsWith(".wasm")) ||
-        !code.includes(WASM_EXTERNAL_ID)
+        !(
+          chunk.moduleIds.some((id) => id.endsWith(".wasm")) ||
+          chunk.imports.some((id) => id.endsWith(".wasm"))
+        ) ||
+        !code.includes(UNWASM_EXTERNAL_PREFIX)
       ) {
+        console.log(chunk);
         return;
       }
       const s = new MagicString(code);
@@ -124,7 +167,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
           asset,
         };
       };
-      const ReplaceRE = new RegExp(`${WASM_EXTERNAL_ID}([^"']+)`, "g");
+      const ReplaceRE = new RegExp(`${UNWASM_EXTERNAL_PREFIX}([^"']+)`, "g");
       for (const match of code.matchAll(ReplaceRE)) {
         const resolved = resolveImport(match[1]);
         const index = match.index as number;
@@ -146,6 +189,20 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
     },
   };
 });
+
+export function getPluginUtils() {
+  return `
+export function base64ToUint8Array(str) {
+  const data = atob(str);
+  const size = data.length;
+  const bytes = new Uint8Array(size);
+  for (let i = 0; i < size; i++) {
+    bytes[i] = data.charCodeAt(i);
+  }
+  return bytes;
+}
+  `;
+}
 
 const rollup = unplugin.rollup as (opts: UnwasmPluginOptions) => RollupPlugin;
 
