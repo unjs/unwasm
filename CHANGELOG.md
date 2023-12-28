@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.3.1
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.0...v0.3.1)
+
+### 🩹 Fixes
+
+- Always return init as default export ([705e178](https://github.com/unjs/unwasm/commit/705e178))
+
+### 📦 Build
+
+- Export commonjs ([7a544b4](https://github.com/unjs/unwasm/commit/7a544b4))
+
+### 🌊 Types
+
+- Export `UnwasmPluginOptions` ([deace11](https://github.com/unjs/unwasm/commit/deace11))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.0
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.2.0...v0.3.0)
