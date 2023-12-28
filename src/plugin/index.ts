@@ -13,6 +13,8 @@ import {
 } from "./shared";
 import { getPluginUtils, getWasmBinding } from "./runtime";
 
+export type { UnwasmPluginOptions } from "./shared";
+
 const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
   const assets: Record<string, WasmAsset> = Object.create(null);
 
