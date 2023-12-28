@@ -43,9 +43,7 @@ ${asset.exports
   .map((name) => `export const ${name} = $exports.${name};`)
   .join("\n")}
 
-export const $init = () => $exports;
-
-export default $exports;
+export default () => $exports;
     `;
   } else {
     // --- Proxied exports when imports are needed or we can't have top-level await ---
@@ -58,8 +56,6 @@ const _mod = createLazyWasmModule(_instantiate);
 ${asset.exports
   .map((name) => `export const ${name} = _mod.${name};`)
   .join("\n")}
-
-export const $init = _mod.$init.bind(_mod);
 
 export default _mod;
     `;
