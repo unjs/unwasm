@@ -133,7 +133,9 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
   };
 });
 
-const rollup = unplugin.rollup as (opts: UnwasmPluginOptions) => RollupPlugin;
+export const rollup = unplugin.rollup as (
+  opts: UnwasmPluginOptions,
+) => RollupPlugin;
 
 export default {
   rollup,
