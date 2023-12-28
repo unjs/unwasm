@@ -9,12 +9,24 @@
   "exports": {
     "./examples/*": "./examples/*",
     "./plugin": {
-      "types": "./dist/plugin.d.mts",
-      "import": "./dist/plugin.mjs"
+      "import": {
+        "types": "./dist/plugin.d.mts",
+        "default": "./dist/plugin.mjs"
+      },
+      "require": {
+        "types": "./dist/plugin.d.ts",
+        "default": "./dist/plugin.cjs"
+      }
     },
     "./tools": {
-      "types": "./dist/tools.d.mts",
-      "import": "./dist/tools.mjs"
+      "import": {
+        "types": "./dist/tools.d.mts",
+        "default": "./dist/tools.mjs"
+      },
+      "require": {
+        "types": "./dist/tools.d.ts",
+        "default": "./dist/tools.cjs"
+      }
     }
   },
   "files": [
