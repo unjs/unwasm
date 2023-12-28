@@ -1,6 +1,6 @@
 import { imports } from "./_imports.mjs";
 
-const { rand } = await import("@fixture/wasm/index.wasm").then((r) =>
+const { rand } = await import("@fixture/wasm/examples/rand.wasm").then((r) =>
   r.$init(imports),
 );
 

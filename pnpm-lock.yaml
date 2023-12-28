@@ -28,6 +28,9 @@ devDependencies:
   '@vitest/coverage-v8':
     specifier: ^1.1.0
     version: 1.1.0(vitest@1.1.0)
+  assemblyscript:
+    specifier: ^0.27.22
+    version: 0.27.22
   changelogen:
     specifier: ^0.5.5
     version: 0.5.5
@@ -1256,6 +1259,15 @@ packages:
       printable-characters: 1.0.42
     dev: true
 
+  /assemblyscript@0.27.22:
+    resolution: {integrity: sha512-6ClobsR4Hxn6K0daYp/+n9qWTqVbpdVeSGSVDqRvUEz66vvFb8atS6nLm+fnQ54JXuXmzLQy0uWYYgB8G59btQ==}
+    engines: {node: '>=16', npm: '>=7'}
+    hasBin: true
+    dependencies:
+      binaryen: 116.0.0-nightly.20231102
+      long: 5.2.3
+    dev: true
+
   /assertion-error@1.1.0:
     resolution: {integrity: sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==}
     dev: true
@@ -1293,6 +1305,11 @@ packages:
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
+
+  /binaryen@116.0.0-nightly.20231102:
+    resolution: {integrity: sha512-aPU9tlKdw/gcXx6u4PxtDgOtGjg/ZKnYdk23ctYb70GxZgPhWnGWmnBt01aV5dt5yFFo2V4rbB7SzpSFhViFQA==}
+    hasBin: true
+    dev: true
 
   /boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
@@ -3155,6 +3172,10 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: true
+
+  /long@5.2.3:
+    resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
     dev: true
 
   /loupe@2.3.7:

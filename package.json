@@ -7,6 +7,7 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
+    "./examples/*": "./examples/*",
     "./plugin": {
       "types": "./dist/plugin/index.d.mts",
       "import": "./dist/plugin/index.mjs"
@@ -14,10 +15,12 @@
   },
   "files": [
     "dist",
-    "*.d.ts"
+    "*.d.ts",
+    "examples/*.wasm"
   ],
   "scripts": {
-    "build": "unbuild",
+    "build": "unbuild && pnpm build:examples",
+    "build:examples": "node ./examples/build.mjs",
     "dev": "vitest dev",
     "lint": "eslint --cache --ext .ts,.js,.mjs,.cjs . && prettier -c src test",
     "lint:fix": "eslint --cache --ext .ts,.js,.mjs,.cjs . --fix && prettier -c src test -w",
@@ -36,6 +39,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^20.10.5",
     "@vitest/coverage-v8": "^1.1.0",
+    "assemblyscript": "^0.27.22",
     "changelogen": "^0.5.5",
     "eslint": "^8.56.0",
     "eslint-config-unjs": "^0.2.1",

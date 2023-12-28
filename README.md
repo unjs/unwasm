@@ -34,13 +34,15 @@ WebAssembly modules that don't require any imports, can be imported simply like 
 **Using static import:**
 
 ```js
-import { func } from "lib/module.wasm";
+import { sum } from "unwasm/examples/sum.wasm";
 ```
 
 **Using dynamic import:**
 
 ```js
-const { func } = await import("lib/module.wasm").then((mod) => mod.default);
+const { sum } = await import("unwasm/examples/sum.wasm").then(
+  (mod) => mod.default,
+);
 ```
 
 In case your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initate the module with an import object first.
@@ -48,16 +50,24 @@ In case your WebAssembly module requires an import object (which is likely!), th
 **Using static import with imports object:**
 
 ```js
-import { func, $init } from "lib/module.wasm";
+import { rand, $init } from "unwasm/examples/rand.wasm";
 
-await $init({ env: {} });
+await $init({
+  env: {
+    seed: () => () => Math.random() * Date.now(),
+  },
+});
 ```
 
 **Using dynamic import with imports object:**
 
 ```js
-const { func } = await import("lib/module.wasm").then((mod) =>
-  mod.$init({ env: {} }),
+const { rand } = await import("unwasm/examples/rand.wasm").then((mod) =>
+  mod.$init({
+    env: {
+      seed: () => () => Math.random() * Date.now(),
+    },
+  }),
 );
 ```
 

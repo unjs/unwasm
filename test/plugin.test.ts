@@ -44,7 +44,7 @@ describe("plugin:rollup-esm", () => {
 
     const code = (output[1] && "code" in output[1] && output[1].code) || "";
     const esmImport = code.match(/["'](.+wasm)["']/)?.[1];
-    expect(esmImport).match(/\.\/wasm\/index-[\da-f]+\.wasm/);
+    expect(esmImport).match(/\.\/wasm\/\w+-[\da-f]+\.wasm/);
     expect(existsSync(r(`.tmp/rollup-esm/${esmImport}`))).toBe(true);
 
     const { Miniflare } = await import("miniflare");
