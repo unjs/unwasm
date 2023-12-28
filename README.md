@@ -27,9 +27,9 @@ The development will be split into multiple stages.
 
 ## Bindings API
 
-When importing a `.wasm` module using unwasm, it will take steps to transform the binary and finally resolve to an ESM module that allows you to interact with the WASM module. The returned result is a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object. This proxy allows to use an elegant API while also having both backward and forward compatibility with WASM modules as ecosystem evolves.
+When importing a `.wasm` module using unwasm, it will take steps to transform the binary and finally resolve to an ESM module that allows you to interact with the WASM module. The returned result is a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object. This proxy allows to use of an elegant API while also having both backward and forward compatibility with WASM modules as the ecosystem evolves.
 
-WebAssembly modules that don't require any imports, can be imported simply like you import any other esm module:
+WebAssembly modules that don't require any imports, can be imported simply like you import any other ESM module:
 
 **Using static import:**
 
@@ -43,7 +43,7 @@ import { func } from "lib/module.wasm";
 const { func } = await import("lib/module.wasm").then((mod) => mod.default);
 ```
 
-In case of your WebAssembly module requires imports object (which is likely!), the usage syntax would be slightly different as we need to initial module with imports object first:
+In case your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initial the module with an import object first:
 
 **Using static import with imports object:**
 
@@ -59,14 +59,14 @@ await $init({ env: {} });
 const { func } = await import("lib/module.wasm").then((mod) => mod.$init(env));
 ```
 
-> [!NOTE] > **When using static import syntax**, and before calling `$init`, the named exports will be wrapped into a function by proxy that waits for the module initialization and before that if called, will immediately try to call `$init()` and return a Promise that calls function after init.
+> [!NOTE] > **When using static import syntax**, and before calling `$init`, the named exports will be wrapped into a function by proxy that waits for the module initialization and before that, if called, will immediately try to call `$init()` and return a Promise that calls a function after init.
 
 > [!NOTE]
-> Named exports with `$` prefix are reserved for unwasm. In case your module uses them, you can access from `$exports` property.
+> Named exports with the `$` prefix are reserved for unwasm. In case your module uses them, you can access them from the `$exports` property.
 
 ## Usage
 
-Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently only method is using a rollup plugin. In the future more usage methods will be introduced.
+Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently only method is using a rollup plugin. In the future, more usage methods will be introduced.
 
 ### Install
 
@@ -115,7 +115,7 @@ export default {
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
 - Install dependencies using `pnpm install`
 - Run interactive tests using `pnpm dev`
-- Optionally install [es6-string-html](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html) extension to make it easier working with string templates.
+- Optionally install [es6-string-html](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html) extension to make it easier to work with string templates.
 
 ## License
 
