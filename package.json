@@ -8,12 +8,13 @@
   "type": "module",
   "exports": {
     "./plugin": {
-      "types": "./dist/plugin.d.mts",
-      "import": "./dist/plugin.mjs"
+      "types": "./dist/plugin/index.d.mts",
+      "import": "./dist/plugin/index.mjs"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "*.d.ts"
   ],
   "scripts": {
     "build": "unbuild",

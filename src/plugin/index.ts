@@ -3,35 +3,17 @@ import { basename } from "pathe";
 import MagicString from "magic-string";
 import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
 import { createUnplugin } from "unplugin";
-import { sha1 } from "./_utils";
-
-const UNWASM_EXTERNAL_PREFIX = "\0unwasm:external:";
-const UMWASM_HELPERS_ID = "\0unwasm:helpers";
-
-export interface UnwasmPluginOptions {
-  /**
-   * Direct import the wasm file instead of bundling, required in Cloudflare Workers
-   *
-   * @default false
-   */
-  esmImport?: boolean;
-
-  /**
-   * Import `.wasm` files using a lazily evaluated promise for compatibility with runtimes without top-level await support
-   *
-   * @default false
-   */
-  lazy?: boolean;
-}
+import {
+  sha1,
+  UMWASM_HELPERS_ID,
+  UNWASM_EXTERNAL_PREFIX,
+  UnwasmPluginOptions,
+  WasmAsset,
+} from "./shared";
+import { getPluginUtils, getWasmBinding } from "./runtime";
 
 const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
-  type WasmAsset = {
-    name: string;
-    source: Buffer;
-  };
-
   const assets: Record<string, WasmAsset> = Object.create(null);
-
   return {
     name: "unwasm",
     rollup: {
@@ -78,9 +60,9 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       }
       const source = await fs.readFile(id);
       const name = `wasm/${basename(id, ".wasm")}-${sha1(source)}.wasm`;
-      assets[id] = <WasmAsset>{ name, source };
+      assets[id] = <WasmAsset>{ name, id, source };
       // TODO: Can we parse wasm to extract exports and avoid syntheticNamedExports?
-      return `export default "WASM";`; // dummy
+      return `export default "UNWASM DUMMY EXPORT";`;
     },
     transform(_code, id) {
       if (!id.endsWith(".wasm")) {
@@ -91,46 +73,8 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return;
       }
 
-      const envCode: string = opts.esmImport
-        ? `
-async function _instantiate(imports) {
-  const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${id}").then(r => r.default || r);
-  return WebAssembly.instantiate(_mod, imports)
-}
-`
-        : `
-import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
-
-function _instantiate(imports) {
-  const _mod = base64ToUint8Array("${asset.source.toString("base64")}")
-  return WebAssembly.instantiate(_mod, imports)
-}
-        `;
-
-      const code = `${envCode}
-const _defaultImports = Object.create(null);
-
-// TODO: For testing only
-Object.assign(_defaultImports, { env: { "seed": () =>  () => Date.now() * Math.random() } })
-
-const instancePromises = new WeakMap();
-function instantiate(imports = _defaultImports) {
-  let p = instancePromises.get(imports);
-  if (!p) {
-    p = _instantiate(imports);
-    instancePromises.set(imports, p);
-  }
-  return p;
-}
-
-const _instance = instantiate();
-const _exports = _instance.then(r => r?.instance?.exports || r?.exports || r);
-
-export default ${opts.lazy ? "" : "await "} _exports;
-      `;
-
       return {
-        code,
+        code: getWasmBinding(asset, opts),
         map: { mappings: "" },
         syntheticNamedExports: true,
       };
@@ -147,7 +91,6 @@ export default ${opts.lazy ? "" : "await "} _exports;
         ) ||
         !code.includes(UNWASM_EXTERNAL_PREFIX)
       ) {
-        console.log(chunk);
         return;
       }
       const s = new MagicString(code);
@@ -189,20 +132,6 @@ export default ${opts.lazy ? "" : "await "} _exports;
     },
   };
 });
-
-export function getPluginUtils() {
-  return `
-export function base64ToUint8Array(str) {
-  const data = atob(str);
-  const size = data.length;
-  const bytes = new Uint8Array(size);
-  for (let i = 0; i < size; i++) {
-    bytes[i] = data.charCodeAt(i);
-  }
-  return bytes;
-}
-  `;
-}
 
 const rollup = unplugin.rollup as (opts: UnwasmPluginOptions) => RollupPlugin;
 
