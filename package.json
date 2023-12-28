@@ -9,8 +9,12 @@
   "exports": {
     "./examples/*": "./examples/*",
     "./plugin": {
-      "types": "./dist/plugin/index.d.mts",
-      "import": "./dist/plugin/index.mjs"
+      "types": "./dist/plugin.d.mts",
+      "import": "./dist/plugin.mjs"
+    },
+    "./tools": {
+      "types": "./dist/tools.d.mts",
+      "import": "./dist/tools.mjs"
     }
   },
   "files": [
@@ -30,6 +34,7 @@
     "test:types": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "@webassemblyjs/wasm-parser": "^1.11.6",
     "magic-string": "^0.30.5",
     "mlly": "^1.4.2",
     "pathe": "^1.1.1",

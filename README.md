@@ -17,53 +17,57 @@ The development will be split into multiple stages.
 > [!IMPORTANT]
 > This Project is under development! See the linked discussions to be involved!
 
-- [ ] Universal builder plugins built with [unjs/unplugin](https://github.com/unjs/unplugin) ([unjs/unwasm#2](https://github.com/unjs/unwasm/issues/2))
+- [ ] Builder plugin powered by [unjs/unplugin](https://github.com/unjs/unplugin) ([unjs/unwasm#2](https://github.com/unjs/unwasm/issues/2))
   - [x] Rollup
-- [ ] Tools to operate and inspect `.wasm` files ([unjs/unwasm#3](https://github.com/unjs/unwasm/issues/3))
-- [ ] Runtime utils ([unjs/unwasm#4](https://github.com/unjs/unwasm/issues/4))
-- [ ] ESM loader for Node.js and other JavaScript runtimes ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
+- [ ] Build Tools ([unjs/unwasm#3](https://github.com/unjs/unwasm/issues/3))
+  - [x] `parseWasm`
+- [ ] Runtime Utils ([unjs/unwasm#4](https://github.com/unjs/unwasm/issues/4))
+- [ ] ESM Loader ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
 - [ ] Integration with [Wasmer](https://github.com/wasmerio) ([unjs/unwasm#6](https://github.com/unjs/unwasm/issues/6))
-- [ ] Convention and tools for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
+- [ ] Convention for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
 
 ## Bindings API
 
-When importing a `.wasm` module using unwasm, it will take steps to transform the binary and finally resolve to an ESM module that allows you to interact with the WASM module. The returned result is a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object. This proxy allows to use of an elegant API while also having both backward and forward compatibility with WASM modules as the ecosystem evolves.
+When importing a `.wasm` module, unwasm resolves, reads and then parses the module to get the information about imports and exports.
 
-WebAssembly modules that don't require any imports, can be imported simply like you import any other ESM module.
+If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (auto detected after parsing), unwasm generates bindings to allow importing wasm module like any other ESM import.
 
-**Using static import:**
+If target environment lacks support for [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) or the wasm module requires imports object, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which is also a `Function`. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize module with imports object.
+
+**Example:** Using static import
 
 ```js
 import { sum } from "unwasm/examples/sum.wasm";
 ```
 
-**Using dynamic import:**
+**Example:** Using dynamic import
 
 ```js
-const { sum } = await import("unwasm/examples/sum.wasm").then(
-  (mod) => mod.default,
-);
+const { sum } = await import("unwasm/examples/sum.wasm");
 ```
 
 In case your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initate the module with an import object first.
 
-**Using static import with imports object:**
+**Example:** Using static import with imports object
 
 ```js
-import { rand, $init } from "unwasm/examples/rand.wasm";
+import initRand, { rand } from "unwasm/examples/rand.wasm";
 
-await $init({
+await initRand({
   env: {
     seed: () => () => Math.random() * Date.now(),
   },
 });
 ```
 
-**Using dynamic import with imports object:**
+> [!NOTE]
+> When using **static import syntax**, and before initializing moule, the named exports will be wrapped into a function by proxy that waits for the module initialization and if called before init, will immediately try to call init without imports and return a Promise that calls a function after init.
+
+**Example:** Using dynamic import with imports object
 
 ```js
-const { rand } = await import("unwasm/examples/rand.wasm").then((mod) =>
-  mod.$init({
+const { rand } = await import("unwasm/examples/rand.wasm").then((r) =>
+  r.default({
     env: {
       seed: () => () => Math.random() * Date.now(),
     },
@@ -71,19 +75,13 @@ const { rand } = await import("unwasm/examples/rand.wasm").then((mod) =>
 );
 ```
 
-> [!NOTE]
-> When using **static import syntax**, and before calling `$init`, the named exports will be wrapped into a function by proxy that waits for the module initialization and before that, if called, will immediately try to call `$init()` and return a Promise that calls a function after init.
-
-> [!NOTE]
-> Named exports with the `$` prefix are reserved for unwasm. In case your module uses them, you can access them from the `$exports` property.
-
-## Usage
+## Integration
 
 Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently only method is using a rollup plugin. In the future, more usage methods will be introduced.
 
 ### Install
 
-First, install the [`unwasm` npm package](https://www.npmjs.com/package/unwasm):
+First, install the [`unwasm`](https://www.npmjs.com/package/unwasm) npm package.
 
 ```sh
 # npm
@@ -105,11 +103,11 @@ bun i -D unwasm
 
 ```js
 // rollup.config.js
-import unwasmPlugin from "unwasm/plugin";
+import { rollup as unwasm } from "unwasm/plugin";
 
 export default {
   plugins: [
-    unwasmPlugin.rollup({
+    unwasm({
       /* options */
     }),
   ],
@@ -118,8 +116,58 @@ export default {
 
 ### Plugin Options
 
-- `esmImport`: Direct import the wasm file instead of bundling, required in Cloudflare Workers (default is `false`)
-- `lazy`: Import `.wasm` files using a lazily evaluated promise for compatibility with runtimes without top-level await support (default is `false`)
+- `esmImport`: Direct import the wasm file instead of bundling, required in Cloudflare Workers and works with environments that allow natively importing a `.wasm` module (default is `false`)
+- `lazy`: Import `.wasm` files using a lazily evaluated proxy for compatibility with runtimes without top-level await support (default is `false`)
+
+## Tools
+
+unwasm provides useful build tools to operate on `.wasm` modules directly.
+
+**Note:** `unwasm/tools` subpath export is **not** meant or optimized for production runtime. Only rely on it for development and build time.
+
+### `parseWasm`
+
+Parses `wasm` binary format with useful information using [webassemblyjs/wasm-parser](https://github.com/xtuc/webassemblyjs/tree/master/packages/wasm-parser).
+
+```js
+import { readFile } from "node:fs/promises";
+import { parseWasm } from "unwasm/tools";
+
+const source = await readFile(new URL("./examples/sum.wasm", import.meta.url));
+const parsed = parseWasm(source);
+console.log(JSON.stringify(parsed, undefined, 2));
+```
+
+Example parsed result:
+
+```json
+{
+  "modules": [
+    {
+      "exports": [
+        {
+          "id": 5,
+          "name": "rand",
+          "type": "Func"
+        },
+        {
+          "id": 0,
+          "name": "memory",
+          "type": "Memory"
+        }
+      ],
+      "imports": [
+        {
+          "module": "env",
+          "name": "seed",
+          "params": [],
+          "returnType": "f64"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Development
 

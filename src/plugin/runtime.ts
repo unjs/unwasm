@@ -9,6 +9,7 @@ import {
 const js = String.raw;
 
 export function getWasmBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
+  // --- Environment dependent code to initialize the wasm module using inlined base 64 or dynamic import ---
   const envCode: string = opts.esmImport
     ? js`
 async function _instantiate(imports) {
@@ -25,25 +26,54 @@ function _instantiate(imports) {
 }
   `;
 
-  return js`
-import { createUnwasmModule } from "${UMWASM_HELPERS_ID}";
+  // --- Binding code to export the wasm module exports ---
+  const canTopAwait =
+    opts.lazy !== true && Object.keys(asset.imports).length === 0;
+
+  // eslint-disable-next-line unicorn/prefer-ternary
+  if (canTopAwait) {
+    // -- Non proxied exports when no imports are needed and we can have top-level await ---
+    return js`
+import { getExports } from "${UMWASM_HELPERS_ID}";
 ${envCode}
-const _mod = createUnwasmModule(_instantiate);
+
+const $exports = getExports(await _instantiate());
+
+${asset.exports
+  .map((name) => `export const ${name} = $exports.${name};`)
+  .join("\n")}
+
+export const $init = () => $exports;
+
+export default $exports;
+    `;
+  } else {
+    // --- Proxied exports when imports are needed or we can't have top-level await ---
+    return js`
+import { createLazyWasmModule } from "${UMWASM_HELPERS_ID}";
+${envCode}
+
+const _mod = createLazyWasmModule(_instantiate);
+
+${asset.exports
+  .map((name) => `export const ${name} = _mod.${name};`)
+  .join("\n")}
 
 export const $init = _mod.$init.bind(_mod);
-export const exports = _mod;
 
 export default _mod;
-`;
+    `;
+  }
 }
 
 export function getPluginUtils() {
+  // --- Shared utils for the generated code ---
   return js`
 export function debug(...args) {
-  console.log('[wasm]', ...args);
+  console.log('[wasm] [debug]', ...args);
 }
 
-function getExports(input) {
+export function getExports(input) {
   return input?.instance?.exports || input?.exports || input;
 }
 
@@ -57,14 +87,14 @@ export function base64ToUint8Array(str) {
   return bytes;
 }
 
-export function createUnwasmModule(_instantiator) {
+export function createLazyWasmModule(_instantiator) {
   const _exports = Object.create(null);
   let _loaded;
   let _promise;
 
-  const $init = (imports) => {
+  const init = (imports) => {
     if (_loaded) {
-      return Promise.resolve(_proxy);
+      return Promise.resolve(exportsProxy);
     }
     if (_promise) {
       return _promise;
@@ -74,16 +104,16 @@ export function createUnwasmModule(_instantiator) {
         Object.assign(_exports, getExports(r));
         _loaded = true;
         _promise = undefined;
-        return _proxy;
+        return exportsProxy;
       })
       .catch(error => {
         _promise = undefined;
-        console.error('[wasm]', error);
+        console.error('[wasm] [error]', error);
         throw error;
       });
   }
 
-  const $exports = new Proxy(_exports, {
+  const exportsProxy = new Proxy(_exports, {
     get(_, prop) {
       if (_loaded) {
         return _exports[prop];
@@ -91,27 +121,22 @@ export function createUnwasmModule(_instantiator) {
       return (...args) => {
         return _loaded
           ? _exports[prop]?.(...args)
-          : $init().then(() => $exports[prop]?.(...args));
+          : init().then(() => _exports[prop]?.(...args));
       };
     },
   });
 
-  const _instance = {
-    $init,
-    $exports,
-  };
 
-  const _proxy = new Proxy(_instance, {
+  const lazyProxy = new Proxy(() => {}, {
     get(_, prop) {
-      // Reserve all to avoid future breaking changes
-      if (prop.startsWith('$')) {
-        return _instance[prop];
-      }
-      return $exports[prop];
-    }
+      return exportsProxy[prop];
+    },
+    apply(_, __, args) {
+      return init(args[0])
+    },
   });
 
-  return _proxy;
+  return lazyProxy;
 }
   `;
 }

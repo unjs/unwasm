@@ -20,6 +20,8 @@ export type WasmAsset = {
   id: string;
   name: string;
   source: Buffer;
+  imports: Record<string, string[]>;
+  exports: string[];
 };
 
 export const UNWASM_EXTERNAL_PREFIX = "\0unwasm:external:";

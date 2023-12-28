@@ -3,6 +3,7 @@ import { basename } from "pathe";
 import MagicString from "magic-string";
 import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
 import { createUnplugin } from "unplugin";
+import { parseWasm } from "../tools";
 import {
   sha1,
   UMWASM_HELPERS_ID,
@@ -14,6 +15,32 @@ import { getPluginUtils, getWasmBinding } from "./runtime";
 
 const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
   const assets: Record<string, WasmAsset> = Object.create(null);
+
+  type ParseCacheEntry = Pick<WasmAsset, "imports" | "exports">;
+  const _parseCache: Record<string, ParseCacheEntry> = Object.create(null);
+  function parse(name: string, source: Buffer) {
+    if (_parseCache[name]) {
+      return _parseCache[name];
+    }
+    const parsed = parseWasm(source);
+    const imports: Record<string, string[]> = Object.create(null);
+    const exports: string[] = [];
+    for (const mod of parsed.modules) {
+      exports.push(...mod.exports.map((e) => e.name));
+      for (const imp of mod.imports) {
+        if (!imports[imp.module]) {
+          imports[imp.module] = [];
+        }
+        imports[imp.module].push(imp.name);
+      }
+    }
+    _parseCache[name] = {
+      imports,
+      exports,
+    };
+    return _parseCache[name];
+  }
+
   return {
     name: "unwasm",
     rollup: {
@@ -34,7 +61,6 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
               id: r.id.startsWith("file://") ? r.id.slice(7) : r.id,
               external: false,
               moduleSideEffects: false,
-              syntheticNamedExports: true,
             };
           }
         }
@@ -55,13 +81,23 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       if (id === UMWASM_HELPERS_ID) {
         return getPluginUtils();
       }
+
       if (!id.endsWith(".wasm") || !existsSync(id)) {
         return;
       }
+
       const source = await fs.readFile(id);
       const name = `wasm/${basename(id, ".wasm")}-${sha1(source)}.wasm`;
-      assets[id] = <WasmAsset>{ name, id, source };
-      // TODO: Can we parse wasm to extract exports and avoid syntheticNamedExports?
+      const parsed = parse(name, source);
+
+      assets[id] = <WasmAsset>{
+        name,
+        id,
+        source,
+        imports: parsed.imports,
+        exports: parsed.exports,
+      };
+
       return `export default "UNWASM DUMMY EXPORT";`;
     },
     transform(_code, id) {
@@ -76,7 +112,6 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       return {
         code: getWasmBinding(asset, opts),
         map: { mappings: "" },
-        syntheticNamedExports: true,
       };
     },
     renderChunk(code: string, chunk: RenderedChunk) {
