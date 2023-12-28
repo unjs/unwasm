@@ -1,4 +1,6 @@
 import { imports } from "./_imports.mjs";
+
+// eslint-disable-next-line import/named
 import { rand, $init } from "@fixture/wasm/index.wasm";
 
 await $init(imports);
