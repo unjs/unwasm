@@ -1,6 +1,31 @@
 # Changelog
 
 
+## v0.3.0
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.2.0...v0.3.0)
+
+### 🚀 Enhancements
+
+- ⚠️  Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
+
+### 📦 Build
+
+- **plugin:** Expose both named and default exports ([4548ebf](https://github.com/unjs/unwasm/commit/4548ebf))
+
+### 🏡 Chore
+
+- Update readme ([bbf5e45](https://github.com/unjs/unwasm/commit/bbf5e45))
+- Update docs ([2d80fdc](https://github.com/unjs/unwasm/commit/2d80fdc))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.2.0
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.1.0...v0.2.0)
