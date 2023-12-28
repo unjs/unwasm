@@ -29,7 +29,7 @@ The development will be split into multiple stages.
 
 When importing a `.wasm` module using unwasm, it will take steps to transform the binary and finally resolve to an ESM module that allows you to interact with the WASM module. The returned result is a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object. This proxy allows to use of an elegant API while also having both backward and forward compatibility with WASM modules as the ecosystem evolves.
 
-WebAssembly modules that don't require any imports, can be imported simply like you import any other ESM module:
+WebAssembly modules that don't require any imports, can be imported simply like you import any other ESM module.
 
 **Using static import:**
 
@@ -43,7 +43,7 @@ import { func } from "lib/module.wasm";
 const { func } = await import("lib/module.wasm").then((mod) => mod.default);
 ```
 
-In case your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initial the module with an import object first:
+In case your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initate the module with an import object first.
 
 **Using static import with imports object:**
 
@@ -56,10 +56,13 @@ await $init({ env: {} });
 **Using dynamic import with imports object:**
 
 ```js
-const { func } = await import("lib/module.wasm").then((mod) => mod.$init(env));
+const { func } = await import("lib/module.wasm").then((mod) =>
+  mod.$init({ env: {} }),
+);
 ```
 
-> [!NOTE] > **When using static import syntax**, and before calling `$init`, the named exports will be wrapped into a function by proxy that waits for the module initialization and before that, if called, will immediately try to call `$init()` and return a Promise that calls a function after init.
+> [!NOTE]
+> When using **static import syntax**, and before calling `$init`, the named exports will be wrapped into a function by proxy that waits for the module initialization and before that, if called, will immediately try to call `$init()` and return a Promise that calls a function after init.
 
 > [!NOTE]
 > Named exports with the `$` prefix are reserved for unwasm. In case your module uses them, you can access them from the `$exports` property.
