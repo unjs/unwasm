@@ -28,11 +28,11 @@ The development will be split into multiple stages.
 
 ## Bindings API
 
-When importing a `.wasm` module, unwasm resolves, reads, and then parses the module to get the information about imports and exports.
+When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during build process to get the information about imports and exports and generate appropriate code bindings.
 
 If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (auto-detected after parsing), unwasm generates bindings to allow importing wasm module like any other ESM import.
 
-If the target environment lacks support for [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) or the wasm module requires imports object, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which is also a `Function`. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize modules with import objects.
+If the target environment lacks support for top level `await` or the wasm module requires imports object or `lazy` plugin option is set to `true`, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which can be called as a function to lazily evaluate the module with custom imports object. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize modules.
 
 **Example:** Using static import
 
@@ -48,6 +48,18 @@ const { sum } = await import("unwasm/examples/sum.wasm");
 
 If your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initiate the module with an import object first.
 
+**Example:** Using dynamic import with imports object
+
+```js
+const { rand } = await import("unwasm/examples/rand.wasm").then((r) =>
+  r.default({
+    env: {
+      seed: () => () => Math.random() * Date.now(),
+    },
+  }),
+);
+```
+
 **Example:** Using static import with imports object
 
 ```js
@@ -62,18 +74,6 @@ await initRand({
 
 > [!NOTE]
 > When using **static import syntax**, and before initializing the module, the named exports will be wrapped into a function by proxy that waits for the module initialization and if called before init, will immediately try to call init without imports and return a Promise that calls a function after init.
-
-**Example:** Using dynamic import with imports object
-
-```js
-const { rand } = await import("unwasm/examples/rand.wasm").then((r) =>
-  r.default({
-    env: {
-      seed: () => () => Math.random() * Date.now(),
-    },
-  }),
-);
-```
 
 ## Integration
 

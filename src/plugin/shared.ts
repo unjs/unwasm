@@ -2,14 +2,16 @@ import { createHash } from "node:crypto";
 
 export interface UnwasmPluginOptions {
   /**
-   * Direct import the wasm file instead of bundling, required in Cloudflare Workers
+   * Directly import the `.wasm` files instead of bundling as base64 string.
    *
    * @default false
    */
   esmImport?: boolean;
 
   /**
-   * Import `.wasm` files using a lazily evaluated promise for compatibility with runtimes without top-level await support
+   * Avoid using top level await and always use a proxy.
+   *
+   * Useful for compatibility with environments that don't support top level await.
    *
    * @default false
    */
