@@ -1,6 +1,6 @@
 import { imports } from "./_shared.mjs";
-import { sum } from "@fixture/wasm/examples/sum.wasm";
-import initRand, { rand } from "@fixture/wasm/examples/rand.wasm";
+import { sum } from "@fixture/wasm/sum.wasm";
+import initRand, { rand } from "@fixture/wasm/rand.wasm";
 
 await initRand(imports);
 

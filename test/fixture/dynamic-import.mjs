@@ -1,7 +1,7 @@
-const { sum } = await import("@fixture/wasm/examples/sum.wasm");
+const { sum } = await import("@fixture/wasm/sum.wasm");
 
 const { imports } = await import("./_shared.mjs");
-const { rand } = await import("@fixture/wasm/examples/rand.wasm").then((r) =>
+const { rand } = await import("@fixture/wasm/rand.wasm").then((r) =>
   r.default(imports),
 );
 
