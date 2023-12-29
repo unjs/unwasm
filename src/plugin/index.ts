@@ -88,6 +88,8 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return;
       }
 
+      this.addWatchFile(id);
+
       const buff = await fs.readFile(id);
       return buff.toString('binary');
     },
