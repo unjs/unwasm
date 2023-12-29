@@ -1,6 +1,34 @@
 # Changelog
 
 
+## v0.3.2
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.1...v0.3.2)
+
+### 🚀 Enhancements
+
+- Watch `.wasm` imports when loading ([ea9343f](https://github.com/unjs/unwasm/commit/ea9343f))
+
+### 🩹 Fixes
+
+- Use hashed name to escape paths ([7446cbf](https://github.com/unjs/unwasm/commit/7446cbf))
+
+### 🏡 Chore
+
+- Apply automated fixes ([e2f8a51](https://github.com/unjs/unwasm/commit/e2f8a51))
+
+### ✅ Tests
+
+- Copy wasm fixtures to allow running in windows ([3f51f39](https://github.com/unjs/unwasm/commit/3f51f39))
+
+### 🤖 CI
+
+- Enable testing on windows ([633f69a](https://github.com/unjs/unwasm/commit/633f69a))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.1
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.0...v0.3.1)
