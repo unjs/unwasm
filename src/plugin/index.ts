@@ -88,28 +88,25 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return;
       }
 
-      const source = await fs.readFile(id);
-      const name = `wasm/${basename(id, ".wasm")}-${sha1(source)}.wasm`;
-      const parsed = parse(name, source);
-
-      assets[id] = <WasmAsset>{
-        name,
-        id,
-        source,
-        imports: parsed.imports,
-        exports: parsed.exports,
-      };
-
-      return `export default "UNWASM DUMMY EXPORT";`;
+      const buff = await fs.readFile(id);
+      return buff.toString('binary');
     },
-    transform(_code, id) {
+    transform(code, id) {
       if (!id.endsWith(".wasm")) {
         return;
       }
-      const asset = assets[id];
-      if (!asset) {
-        return;
-      }
+
+      const buff = Buffer.from(code, 'binary')
+      const name = `wasm/${basename(id, ".wasm")}-${sha1(buff)}.wasm`;
+      const parsed = parse(name, buff);
+
+      const asset = assets[name] = <WasmAsset>{
+        name,
+        id,
+        source: buff,
+        imports: parsed.imports,
+        exports: parsed.exports,
+      };
 
       return {
         code: getWasmBinding(asset, opts),

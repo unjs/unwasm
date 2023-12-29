@@ -13,7 +13,7 @@ export function getWasmBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
   const envCode: string = opts.esmImport
     ? js`
 async function _instantiate(imports) {
-  const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.id}").then(r => r.default || r);
+  const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
   return WebAssembly.instantiate(_mod, imports)
 }
   `
