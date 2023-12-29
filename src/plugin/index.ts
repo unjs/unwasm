@@ -91,24 +91,24 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       this.addWatchFile(id);
 
       const buff = await fs.readFile(id);
-      return buff.toString('binary');
+      return buff.toString("binary");
     },
     transform(code, id) {
       if (!id.endsWith(".wasm")) {
         return;
       }
 
-      const buff = Buffer.from(code, 'binary')
+      const buff = Buffer.from(code, "binary");
       const name = `wasm/${basename(id, ".wasm")}-${sha1(buff)}.wasm`;
       const parsed = parse(name, buff);
 
-      const asset = assets[name] = <WasmAsset>{
+      const asset = (assets[name] = <WasmAsset>{
         name,
         id,
         source: buff,
         imports: parsed.imports,
         exports: parsed.exports,
-      };
+      });
 
       return {
         code: getWasmBinding(asset, opts),
