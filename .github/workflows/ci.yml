@@ -10,7 +10,10 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable
@@ -20,7 +23,11 @@ jobs:
           cache: "pnpm"
       - run: pnpm install
       - run: pnpm lint
+        if: ${{ matrix.os != 'windows-latest' }}
       - run: pnpm test:types
+        if: ${{ matrix.os != 'windows-latest' }}
       - run: pnpm build
+        if: ${{ matrix.os != 'windows-latest' }}
       - run: pnpm vitest --coverage
       - uses: codecov/codecov-action@v3
+
