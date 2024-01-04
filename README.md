@@ -29,7 +29,7 @@ The development will be split into multiple stages.
 
 ## Bindings API
 
-When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during the build process to get the information about imports and exports and even tries to [automatically resolve imports](#auto-imports) and generate appropriate code bindings for the bundler. 
+When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during the build process to get the information about imports and exports and even tries to [automatically resolve imports](#auto-imports) and generate appropriate code bindings for the bundler.
 
 If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (or they are auto resolvable), unwasm generates bindings to allow importing wasm module like any other ESM import.
 
@@ -180,9 +180,6 @@ To hint to the bundler how to resolve imports needed by the `.wasm` file, you ne
 
 ```js
 {
-  "name": "@fixture/wasm",
-  "version": "1.0.0",
-  "type": "module",
   "exports": {
     "./rand.wasm": "./rand.wasm"
   },
