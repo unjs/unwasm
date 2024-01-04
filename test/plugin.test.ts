@@ -68,7 +68,7 @@ async function _evalCloudflare(name: string) {
 import { test } from "./index.mjs";
 export default {
   async fetch(request, env, ctx) {
-    return new Response(test());
+    return new Response(await test());
   }
 }
 `,

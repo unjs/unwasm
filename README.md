@@ -25,14 +25,15 @@ The development will be split into multiple stages.
 - [ ] ESM Loader ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
 - [ ] Integration with [Wasmer](https://github.com/wasmerio) ([unjs/unwasm#6](https://github.com/unjs/unwasm/issues/6))
 - [ ] Convention for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
+  - [x] Auto resolve imports from the imports map
 
 ## Bindings API
 
-When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during build process to get the information about imports and exports and generate appropriate code bindings.
+When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during the build process to get the information about imports and exports and even tries to [automatically resolve imports](#auto-imports) and generate appropriate code bindings for the bundler.
 
-If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (auto-detected after parsing), unwasm generates bindings to allow importing wasm module like any other ESM import.
+If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (or they are auto resolvable), unwasm generates bindings to allow importing wasm module like any other ESM import.
 
-If the target environment lacks support for top level `await` or the wasm module requires imports object or `lazy` plugin option is set to `true`, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which can be called as a function to lazily evaluate the module with custom imports object. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize modules.
+If the target environment lacks support for top-level `await` or the wasm module requires an imports object or `lazy` plugin option is set to `true`, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which can be called as a function to evaluate the module with custom imports object lazily. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize modules.
 
 **Example:** Using static import
 
@@ -46,7 +47,7 @@ import { sum } from "unwasm/examples/sum.wasm";
 const { sum } = await import("unwasm/examples/sum.wasm");
 ```
 
-If your WebAssembly module requires an import object (which is likely!), the usage syntax would be slightly different as we need to initiate the module with an import object first.
+If your WebAssembly module requires an import object (unwasm can [automatically infer them](#auto-imports)), the usage syntax would be slightly different as we need to initiate the module with an import object first.
 
 **Example:** Using dynamic import with imports object
 
@@ -168,6 +169,27 @@ Example parsed result:
   ]
 }
 ```
+
+## Auto Imports
+
+unwasm can automatically infer the imports object and bundle them using imports maps (read more: [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap), [Node.js](https://nodejs.org/api/packages.html#imports) and [WICG](https://github.com/WICG/import-maps)).
+
+To hint to the bundler how to resolve imports needed by the `.wasm` file, you need to define them in a parent `package.json` file.
+
+**Example:**
+
+```js
+{
+  "exports": {
+    "./rand.wasm": "./rand.wasm"
+  },
+  "imports": {
+    "env": "./env.mjs"
+  }
+}
+```
+
+**Note:** The imports can also be prefixed with `#` like `#env` if you like to respect Node.js conventions.
 
 ## Development
 

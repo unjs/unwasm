@@ -32,7 +32,9 @@
   "files": [
     "dist",
     "*.d.ts",
-    "examples/*.wasm"
+    "examples/*.wasm",
+    "examples/package.json",
+    "examples/*.mjs"
   ],
   "scripts": {
     "build": "unbuild && pnpm build:examples",
@@ -50,6 +52,7 @@
     "magic-string": "^0.30.5",
     "mlly": "^1.4.2",
     "pathe": "^1.1.1",
+    "pkg-types": "^1.0.3",
     "unplugin": "^1.6.0"
   },
   "devDependencies": {

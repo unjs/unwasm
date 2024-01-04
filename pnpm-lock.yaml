@@ -17,6 +17,9 @@ dependencies:
   pathe:
     specifier: ^1.1.1
     version: 1.1.1
+  pkg-types:
+    specifier: ^1.0.3
+    version: 1.0.3
   unplugin:
     specifier: ^1.6.0
     version: 1.6.0

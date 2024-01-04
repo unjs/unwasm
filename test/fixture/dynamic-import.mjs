@@ -1,11 +1,9 @@
-const { sum } = await import("@fixture/wasm/sum.wasm");
+export async function test() {
+  // Avoid top-level await because of miniflare curren't limitation.
+  // https://github.com/cloudflare/miniflare/issues/753
+  const { rand } = await import("@fixture/wasm/rand.wasm");
+  const { sum } = await import("@fixture/wasm/sum.wasm");
 
-const { imports } = await import("./_shared.mjs");
-const { rand } = await import("@fixture/wasm/rand.wasm").then((r) =>
-  r.default(imports),
-);
-
-export function test() {
   if (sum(1, 2) !== 3) {
     return "FALED: sum";
   }
