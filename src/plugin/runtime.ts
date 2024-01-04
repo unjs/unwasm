@@ -19,7 +19,7 @@ export async function getWasmBinding(
   // --- Environment dependent code to initialize the wasm module using inlined base 64 or dynamic import ---
   const envCode: string = opts.esmImport
     ? js`
-${autoImports};
+${autoImports.code};
 
 async function _instantiate(imports = _imports) {
   const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
@@ -28,7 +28,7 @@ async function _instantiate(imports = _imports) {
   `
     : js`
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
-${autoImports};
+${autoImports.code};
 
 function _instantiate(imports = _imports) {
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
@@ -37,7 +37,7 @@ function _instantiate(imports = _imports) {
   `;
 
   // --- Binding code to export the wasm module exports ---
-  const canTopAwait = opts.lazy !== true;
+  const canTopAwait = opts.lazy !== true && autoImports.resolved;
 
   // eslint-disable-next-line unicorn/prefer-ternary
   if (canTopAwait) {
@@ -152,12 +152,18 @@ export async function getWasmImports(
 ) {
   const importNames = Object.keys(asset.imports || {});
   if (importNames.length === 0) {
-    return "const _imports = { /* no imports */ }";
+    return {
+      code: "const _imports = { /* no imports */ }",
+      resolved: true,
+    };
   }
+
   // Try to resolve from nearest package.json
   const pkgJSON = await readPackageJSON(asset.id);
 
   let code = "const _imports = {";
+
+  let resolved = true;
 
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
@@ -166,6 +172,8 @@ export async function getWasmImports(
 
     if (pkgImport) {
       code = `import * as _imports_${moduleName} from "${pkgImport}";\n${code}`;
+    } else {
+      resolved = false;
     }
     code += `\n  ${moduleName}: {`;
     for (const name of importNames) {
@@ -178,5 +186,8 @@ export async function getWasmImports(
 
   code += "};\n";
 
-  return code;
+  return {
+    code,
+    resolved,
+  };
 }
