@@ -42,8 +42,7 @@ function _instantiate(imports = _imports) {
   `;
 
   // --- Binding code to export the wasm module exports ---
-  const canTopAwait =
-    opts.lazy !== true && Object.keys(asset.imports).length === 0;
+  const canTopAwait = opts.lazy !== true;
 
   // eslint-disable-next-line unicorn/prefer-ternary
   if (canTopAwait) {

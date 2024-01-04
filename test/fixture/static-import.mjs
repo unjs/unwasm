@@ -1,7 +1,5 @@
 import { sum } from "@fixture/wasm/sum.wasm";
-import initRand, { rand } from "@fixture/wasm/rand.wasm";
-
-await initRand();
+import { rand } from "@fixture/wasm/rand.wasm";
 
 export function test() {
   if (sum(1, 2) !== 3) {
