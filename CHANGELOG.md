@@ -1,6 +1,28 @@
 # Changelog
 
 
+## v0.3.3
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.2...v0.3.3)
+
+### 🚀 Enhancements
+
+- Automatically provide imports object using import map ([#11](https://github.com/unjs/unwasm/pull/11))
+
+### 🏡 Chore
+
+- Refactor tests ([e923340](https://github.com/unjs/unwasm/commit/e923340))
+- Apply automated fixes ([b06f6f3](https://github.com/unjs/unwasm/commit/b06f6f3))
+
+### ✅ Tests
+
+- Fix windows ([6a930fa](https://github.com/unjs/unwasm/commit/6a930fa))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Pooya ([@pi0](http://github.com/pi0))
+
 ## v0.3.2
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.1...v0.3.2)
