@@ -14,7 +14,7 @@ await rm(r(".tmp"), { recursive: true }).catch(() => {});
 describe("plugin:rollup", () => {
   it("inline", async () => {
     const { output } = await _rollupBuild(
-      r("fixture/static-import.mjs"),
+      "fixture/static-import.mjs",
       "rollup-inline",
       {},
     );
@@ -26,7 +26,7 @@ describe("plugin:rollup", () => {
   it("esmImport", async () => {
     const name = "rollup-esm";
     const { output } = await _rollupBuild(
-      r("fixture/dynamic-import.mjs"),
+      "fixture/dynamic-import.mjs",
       name,
       { esmImport: true },
     );
