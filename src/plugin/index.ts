@@ -93,7 +93,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       const buff = await fs.readFile(id);
       return buff.toString("binary");
     },
-    transform(code, id) {
+    async transform(code, id) {
       if (!id.endsWith(".wasm")) {
         return;
       }
@@ -111,7 +111,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       });
 
       return {
-        code: getWasmBinding(asset, opts),
+        code: await getWasmBinding(asset, opts),
         map: { mappings: "" },
       };
     },
