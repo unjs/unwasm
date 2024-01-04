@@ -23,12 +23,7 @@ ${autoImports};
 
 async function _instantiate(imports = _imports) {
   const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
-  try {
-    return await WebAssembly.instantiate(_mod, imports)
-  } catch (error) {
-    console.error('[wasm] [error]', error);
-    throw error;
-  }
+  return WebAssembly.instantiate(_mod, imports)
 }
   `
     : js`
