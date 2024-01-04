@@ -25,6 +25,7 @@ The development will be split into multiple stages.
 - [ ] ESM Loader ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
 - [ ] Integration with [Wasmer](https://github.com/wasmerio) ([unjs/unwasm#6](https://github.com/unjs/unwasm/issues/6))
 - [ ] Convention for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
+  - [x] Auto resolve imports from imports map
 
 ## Bindings API
 
@@ -168,6 +169,30 @@ Example parsed result:
   ]
 }
 ```
+
+## Auto Imports
+
+unwasm can automatically infer the imports object and bundle them using imports maps (read more: [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap), [Node.js](https://nodejs.org/api/packages.html#imports) and [WICG](https://github.com/WICG/import-maps)).
+
+In order to hint the bundler how to resolve imports needed by the `.wasm` file, you need to define them in a parent `package.json` file.
+
+**Example:**
+
+```js
+{
+  "name": "@fixture/wasm",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./rand.wasm": "./rand.wasm"
+  },
+  "imports": {
+    "env": "./env.mjs"
+  }
+}
+```
+
+**Note:** The imports can be also prefixed with `#` like `#env` if you like to respect Node.js conventions.
 
 ## Development
 
