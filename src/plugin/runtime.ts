@@ -1,3 +1,4 @@
+import { readPackageJSON } from "pkg-types";
 import {
   UMWASM_HELPERS_ID,
   UNWASM_EXTERNAL_PREFIX,
@@ -8,19 +9,33 @@ import {
 // https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html
 const js = String.raw;
 
-export function getWasmBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
+export async function getWasmBinding(
+  asset: WasmAsset,
+  opts: UnwasmPluginOptions,
+) {
+  // -- Auto load imports --
+  const autoImports = await getWasmImports(asset, opts);
+
   // --- Environment dependent code to initialize the wasm module using inlined base 64 or dynamic import ---
   const envCode: string = opts.esmImport
     ? js`
-async function _instantiate(imports) {
+${autoImports};
+
+async function _instantiate(imports = _imports) {
   const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
-  return WebAssembly.instantiate(_mod, imports)
+  try {
+    return await WebAssembly.instantiate(_mod, imports)
+  } catch (error) {
+    console.error('[wasm] [error]', error);
+    throw error;
+  }
 }
   `
     : js`
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
+${autoImports};
 
-function _instantiate(imports) {
+function _instantiate(imports = _imports) {
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
   return WebAssembly.instantiate(_data, imports)
 }
@@ -135,4 +150,39 @@ export function createLazyWasmModule(_instantiator) {
   return lazyProxy;
 }
   `;
+}
+
+export async function getWasmImports(
+  asset: WasmAsset,
+  opts: UnwasmPluginOptions,
+) {
+  const importNames = Object.keys(asset.imports || {});
+  if (importNames.length === 0) {
+    return "const _imports = { /* no imports */ }";
+  }
+  // Try to resolve from nearest package.json
+  const pkgJSON = await readPackageJSON(asset.id);
+
+  let code = "const _imports = {";
+
+  for (const moduleName of importNames) {
+    const importNames = asset.imports[moduleName];
+    const pkgImport =
+      pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
+
+    if (pkgImport) {
+      code = `import * as _imports_${moduleName} from "${pkgImport}";\n${code}`;
+    }
+    code += `\n  ${moduleName}: {`;
+    for (const name of importNames) {
+      code += pkgImport
+        ? `\n    ${name}: _imports_${moduleName}.${name},\n`
+        : `\n    ${name}: () => { throw new Error("\`${moduleName}.${name}\` is not provided!")},\n`;
+    }
+    code += "  },\n";
+  }
+
+  code += "};\n";
+
+  return code;
 }
