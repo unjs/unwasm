@@ -32,7 +32,9 @@
   "files": [
     "dist",
     "*.d.ts",
-    "examples/*.wasm"
+    "examples/*.wasm",
+    "examples/package.json",
+    "examples/*.mjs"
   ],
   "scripts": {
     "build": "unbuild && pnpm build:examples",
