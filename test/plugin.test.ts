@@ -25,11 +25,9 @@ describe("plugin:rollup", () => {
 
   it("esmImport", async () => {
     const name = "rollup-esm";
-    const { output } = await _rollupBuild(
-      "fixture/dynamic-import.mjs",
-      name,
-      { esmImport: true },
-    );
+    const { output } = await _rollupBuild("fixture/dynamic-import.mjs", name, {
+      esmImport: true,
+    });
 
     const code = (output[1] && "code" in output[1] && output[1].code) || "";
     const esmImport = code.match(/["'](.+wasm)["']/)?.[1];
