@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.3.4
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.3...v0.3.4)
+
+### 🩹 Fixes
+
+- **plugin:** Handle escaped \0 char for import rewrites ([3b6ae8e](https://github.com/unjs/unwasm/commit/3b6ae8e))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.3
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.2...v0.3.3)
