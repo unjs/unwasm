@@ -8,6 +8,7 @@ import {
   sha1,
   UMWASM_HELPERS_ID,
   UNWASM_EXTERNAL_PREFIX,
+  UNWASM_EXTERNAL_RE,
   UnwasmPluginOptions,
   WasmAsset,
 } from "./shared";
@@ -124,8 +125,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         !(
           chunk.moduleIds.some((id) => id.endsWith(".wasm")) ||
           chunk.imports.some((id) => id.endsWith(".wasm"))
-        ) ||
-        !code.includes(UNWASM_EXTERNAL_PREFIX)
+        )
       ) {
         return;
       }
@@ -146,9 +146,8 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
           asset,
         };
       };
-      const ReplaceRE = new RegExp(`${UNWASM_EXTERNAL_PREFIX}([^"']+)`, "g");
-      for (const match of code.matchAll(ReplaceRE)) {
-        const resolved = resolveImport(match[1]);
+      for (const match of code.matchAll(UNWASM_EXTERNAL_RE)) {
+        const resolved = resolveImport(match[2]);
         const index = match.index as number;
         const len = match[0].length;
         if (!resolved || !index) {

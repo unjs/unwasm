@@ -27,6 +27,7 @@ export type WasmAsset = {
 };
 
 export const UNWASM_EXTERNAL_PREFIX = "\0unwasm:external:";
+export const UNWASM_EXTERNAL_RE = /(\0|\\0)unwasm:external:([^"']+)/gu;
 export const UMWASM_HELPERS_ID = "\0unwasm:helpers";
 
 export function sha1(source: Buffer) {
