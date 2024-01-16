@@ -1,6 +1,29 @@
 # Changelog
 
 
+## v0.3.5
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.4...v0.3.5)
+
+### 🩹 Fixes
+
+- Show better error for parse errors ([3273a03](https://github.com/unjs/unwasm/commit/3273a03))
+- **plugin:** Soft warning when failed to parse wasm modules ([7852aa2](https://github.com/unjs/unwasm/commit/7852aa2))
+- **plugin:** Handle `//` in chunk file names ([eefa78c](https://github.com/unjs/unwasm/commit/eefa78c))
+- Patch parser to support narrow-width integer sign byte opcode ([ae90475](https://github.com/unjs/unwasm/commit/ae90475))
+
+### 📦 Build
+
+- Bundle webassemblyjs parse utils ([fe31895](https://github.com/unjs/unwasm/commit/fe31895))
+
+### 🏡 Chore
+
+- Fix lint issue ([3c37db1](https://github.com/unjs/unwasm/commit/3c37db1))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.4
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.3...v0.3.4)
