@@ -1,5 +1,5 @@
 // @ts-ignore
-import { decode as _parseWasm } from "@webassemblyjs/wasm-parser";
+import { decode as _parseWasm } from "../../lib/wasm-parser.mjs";
 
 export type ParsedWasmModule = {
   id?: string;
