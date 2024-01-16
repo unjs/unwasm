@@ -73,5 +73,10 @@
     "vite": "^5.0.11",
     "vitest": "^1.2.0"
   },
-  "packageManager": "pnpm@8.14.1"
+  "packageManager": "pnpm@8.14.1",
+  "pnpm": {
+    "patchedDependencies": {
+      "@webassemblyjs/helper-wasm-bytecode@1.11.6": "patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch"
+    }
+  }
 }

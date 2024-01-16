@@ -1,0 +1,19 @@
+diff --git a/lib/index.js b/lib/index.js
+index cd647d2d169fe793dc3100a148c0beef19c286fc..76d80a75a4be8218ad3af3097dff3d05921793d4 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -311,6 +311,14 @@ var symbolsByByte = {
+   0xbd: createSymbolObject("reinterpret/f64", "i64"),
+   0xbe: createSymbolObject("reinterpret/i32", "f32"),
+   0xbf: createSymbolObject("reinterpret/i64", "f64"),
++
++  // https://github.com/xtuc/webassemblyjs/pull/1147
++  0xc0: createSymbolObject("extend8_s", "i32"),
++  0xc1: createSymbolObject("extend16_s", "i32"),
++  0xc2: createSymbolObject("extend8_s", "i64"),
++  0xc3: createSymbolObject("extend16_s", "i64"),
++  0xc4: createSymbolObject("extend32_s", "i64"),
++
+   // Atomic Memory Instructions
+   0xfe00: createSymbol("memory.atomic.notify", 1),
+   0xfe01: createSymbol("memory.atomic.wait32", 1),

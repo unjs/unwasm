@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@webassemblyjs/helper-wasm-bytecode@1.11.6':
+    hash: 2yqg2jtg6wn6u6w2h6qfarflum
+    path: patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch
+
 dependencies:
   magic-string:
     specifier: ^0.30.5
@@ -1151,7 +1156,7 @@ packages:
     resolution: {integrity: sha512-IN1xI7PwOvLPgjcf180gC1bqn3q/QaOCwYUahIOhbYUu8KA/3tw2RT/T0Gidi1l7Hhj5D/INhJxiICObqpMu4Q==}
     dependencies:
       '@webassemblyjs/helper-numbers': 1.11.6
-      '@webassemblyjs/helper-wasm-bytecode': 1.11.6
+      '@webassemblyjs/helper-wasm-bytecode': 1.11.6(patch_hash=2yqg2jtg6wn6u6w2h6qfarflum)
     dev: true
 
   /@webassemblyjs/floating-point-hex-parser@1.11.6:
@@ -1170,9 +1175,10 @@ packages:
       '@xtuc/long': 4.2.2
     dev: true
 
-  /@webassemblyjs/helper-wasm-bytecode@1.11.6:
+  /@webassemblyjs/helper-wasm-bytecode@1.11.6(patch_hash=2yqg2jtg6wn6u6w2h6qfarflum):
     resolution: {integrity: sha512-sFFHKwcmBprO9e7Icf0+gddyWYDViL8bpPjJJl0WHxCdETktXdmtWLGVzoHbqUcY4Be1LkNfwTmXOJUFZYSJdA==}
     dev: true
+    patched: true
 
   /@webassemblyjs/ieee754@1.11.6:
     resolution: {integrity: sha512-LM4p2csPNvbij6U1f19v6WR56QZ8JcHg3QIJTlSwzFcmx6WSORicYj6I63f9yU1kEUtrpG+kjkiIAkevHpDXrg==}
@@ -1195,7 +1201,7 @@ packages:
     dependencies:
       '@webassemblyjs/ast': 1.11.6
       '@webassemblyjs/helper-api-error': 1.11.6
-      '@webassemblyjs/helper-wasm-bytecode': 1.11.6
+      '@webassemblyjs/helper-wasm-bytecode': 1.11.6(patch_hash=2yqg2jtg6wn6u6w2h6qfarflum)
       '@webassemblyjs/ieee754': 1.11.6
       '@webassemblyjs/leb128': 1.11.6
       '@webassemblyjs/utf8': 1.11.6
