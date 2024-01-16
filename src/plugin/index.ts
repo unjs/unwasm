@@ -25,18 +25,24 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
     if (_parseCache[name]) {
       return _parseCache[name];
     }
-    const parsed = parseWasm(source, { name });
     const imports: Record<string, string[]> = Object.create(null);
     const exports: string[] = [];
-    for (const mod of parsed.modules) {
-      exports.push(...mod.exports.map((e) => e.name));
-      for (const imp of mod.imports) {
-        if (!imports[imp.module]) {
-          imports[imp.module] = [];
+
+    try {
+      const parsed = parseWasm(source, { name });
+      for (const mod of parsed.modules) {
+        exports.push(...mod.exports.map((e) => e.name));
+        for (const imp of mod.imports) {
+          if (!imports[imp.module]) {
+            imports[imp.module] = [];
+          }
+          imports[imp.module].push(imp.name);
         }
-        imports[imp.module].push(imp.name);
       }
+    } catch (error) {
+      console.warn(`[unwasm] Failed to parse WASM module ${name}:`, error);
     }
+
     _parseCache[name] = {
       imports,
       exports,
