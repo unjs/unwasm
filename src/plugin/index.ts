@@ -144,7 +144,8 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         if (!asset) {
           return;
         }
-        const nestedLevel = chunk.fileName.split("/").length - 1;
+        const nestedLevel =
+          chunk.fileName.split("/").filter(Boolean /* handle // */).length - 1;
         const relativeId =
           (nestedLevel ? "../".repeat(nestedLevel) : "./") + asset.name;
         return {
