@@ -76,7 +76,8 @@
   "packageManager": "pnpm@8.14.1",
   "pnpm": {
     "patchedDependencies": {
-      "@webassemblyjs/helper-wasm-bytecode@1.11.6": "patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch"
+      "@webassemblyjs/helper-wasm-bytecode@1.11.6": "patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch",
+      "@webassemblyjs/leb128@1.11.6": "patches/@webassemblyjs__leb128@1.11.6.patch"
     }
   }
 }

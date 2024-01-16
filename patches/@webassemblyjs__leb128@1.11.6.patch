@@ -1,0 +1,13 @@
+diff --git a/lib/bufs.js b/lib/bufs.js
+index f9a176ed87d84c833d2867bf9cf1e79d2d41823f..1ea71634e17fabfd15bce95f17894dfb7d9a4862 100644
+--- a/lib/bufs.js
++++ b/lib/bufs.js
+@@ -98,7 +98,7 @@ function alloc(length) {
+   if (result) {
+     bufPool[length] = undefined;
+   } else {
+-    result = new Buffer(length);
++    result = Buffer.alloc(length);
+   }
+
+   result.fill(0);

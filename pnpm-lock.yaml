@@ -8,6 +8,9 @@ patchedDependencies:
   '@webassemblyjs/helper-wasm-bytecode@1.11.6':
     hash: 2yqg2jtg6wn6u6w2h6qfarflum
     path: patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch
+  '@webassemblyjs/leb128@1.11.6':
+    hash: irpstnnlcpe4xzsb345am6kfk4
+    path: patches/@webassemblyjs__leb128@1.11.6.patch
 
 dependencies:
   magic-string:
@@ -1186,11 +1189,12 @@ packages:
       '@xtuc/ieee754': 1.2.0
     dev: true
 
-  /@webassemblyjs/leb128@1.11.6:
+  /@webassemblyjs/leb128@1.11.6(patch_hash=irpstnnlcpe4xzsb345am6kfk4):
     resolution: {integrity: sha512-m7a0FhE67DQXgouf1tbN5XQcdWoNgaAuoULHIfGFIEVKA6tu/edls6XnIlkmS6FrXAquJRPni3ZZKjw6FSPjPQ==}
     dependencies:
       '@xtuc/long': 4.2.2
     dev: true
+    patched: true
 
   /@webassemblyjs/utf8@1.11.6:
     resolution: {integrity: sha512-vtXf2wTQ3+up9Zsg8sa2yWiQpzSsMyXj0qViVP6xKGCUT8p8YJ6HqI7l5eCnWx1T/FYdsv07HQs2wTFbbof/RA==}
@@ -1203,7 +1207,7 @@ packages:
       '@webassemblyjs/helper-api-error': 1.11.6
       '@webassemblyjs/helper-wasm-bytecode': 1.11.6(patch_hash=2yqg2jtg6wn6u6w2h6qfarflum)
       '@webassemblyjs/ieee754': 1.11.6
-      '@webassemblyjs/leb128': 1.11.6
+      '@webassemblyjs/leb128': 1.11.6(patch_hash=irpstnnlcpe4xzsb345am6kfk4)
       '@webassemblyjs/utf8': 1.11.6
     dev: true
 
