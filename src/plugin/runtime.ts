@@ -52,7 +52,9 @@ ${asset.exports
   .map((name) => `export const ${name} = $exports.${name};`)
   .join("\n")}
 
-export default () => $exports;
+const defaultExport = () => $exports;
+${asset.exports.map((name) => `defaultExport["${name}"] = $exports.${name};`).join("\n")}
+export default defaultExport;
     `;
   } else {
     // --- Proxied exports when imports are needed or we can't have top-level await ---
