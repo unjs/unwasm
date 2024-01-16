@@ -148,7 +148,7 @@ export function createLazyWasmModule(_instantiator) {
 
 export async function getWasmImports(
   asset: WasmAsset,
-  opts: UnwasmPluginOptions,
+  _opts: UnwasmPluginOptions, // eslint-disable-line @typescript-eslint/no-unused-vars
 ) {
   const importNames = Object.keys(asset.imports || {});
   if (importNames.length === 0) {
