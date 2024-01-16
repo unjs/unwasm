@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.3.6
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.5...v0.3.6)
+
+### 🩹 Fixes
+
+- Patch to use `Buffer.alloc` instead of `new Buffer` ([d6262d7](https://github.com/unjs/unwasm/commit/d6262d7))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.5
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.4...v0.3.5)
