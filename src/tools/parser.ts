@@ -24,8 +24,21 @@ export type ParseResult = {
   modules: ParsedWasmModule[];
 };
 
-export function parseWasm(source: Buffer | ArrayBuffer): ParseResult {
-  const ast = _parseWasm(source) as any;
+export function parseWasm(
+  source: Buffer | ArrayBuffer,
+  opts: { name?: string } = {},
+): ParseResult {
+  let ast: any;
+  try {
+    ast = _parseWasm(source);
+  } catch (error) {
+    throw new Error(
+      `[unwasm] Failed to parse ${opts.name || "wasm module"}: ${error}`,
+      {
+        cause: error,
+      },
+    );
+  }
 
   const modules = [];
 

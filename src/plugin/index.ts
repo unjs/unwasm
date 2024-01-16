@@ -25,7 +25,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
     if (_parseCache[name]) {
       return _parseCache[name];
     }
-    const parsed = parseWasm(source);
+    const parsed = parseWasm(source, { name });
     const imports: Record<string, string[]> = Object.create(null);
     const exports: string[] = [];
     for (const mod of parsed.modules) {
