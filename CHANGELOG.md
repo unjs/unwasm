@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.3.7
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.6...v0.3.7)
+
+### 🩹 Fixes
+
+- **plugin:** Allow mixed exports for top level binding ([1c4efcd](https://github.com/unjs/unwasm/commit/1c4efcd))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.6
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.5...v0.3.6)
