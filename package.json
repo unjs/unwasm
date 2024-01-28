@@ -56,12 +56,12 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/node": "^20.11.7",
+    "@types/node": "^20.11.10",
     "@vitest/coverage-v8": "^1.2.2",
     "@webassemblyjs/wasm-parser": "^1.11.6",
     "assemblyscript": "^0.27.23",
     "changelogen": "^0.5.5",
-    "esbuild": "^0.19.12",
+    "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-config-unjs": "^0.2.1",
     "jiti": "^1.21.0",
@@ -73,7 +73,7 @@
     "vite": "^5.0.11",
     "vitest": "^1.2.2"
   },
-  "packageManager": "pnpm@8.14.3",
+  "packageManager": "pnpm@8.15.0",
   "pnpm": {
     "patchedDependencies": {
       "@webassemblyjs/helper-wasm-bytecode@1.11.6": "patches/@webassemblyjs__helper-wasm-bytecode@1.11.6.patch",
