@@ -29,5 +29,5 @@ jobs:
       - run: pnpm build
         if: ${{ matrix.os != 'windows-latest' }}
       - run: pnpm vitest --coverage
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
 
