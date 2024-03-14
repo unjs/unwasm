@@ -1,5 +1,11 @@
 import { readPackageJSON } from "pkg-types";
 import {
+  genSafeVariableName,
+  genObjectFromRaw,
+  genString,
+  genImport,
+} from "knitwork";
+import {
   UMWASM_HELPERS_ID,
   UNWASM_EXTERNAL_PREFIX,
   WasmAsset,
@@ -186,30 +192,37 @@ export async function getWasmImports(
   // Try to resolve from nearest package.json
   const pkgJSON = await readPackageJSON(asset.id);
 
-  let code = "const _imports = {";
-
   let resolved = true;
+
+  const imports: string[] = [];
+  const importsObject: Record<string, Record<string, string>> = {};
 
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
     const pkgImport =
       pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
 
+    const importName = "_imports_" + genSafeVariableName(moduleName);
+
     if (pkgImport) {
-      code = `import * as _imports_${moduleName} from "${pkgImport}";\n${code}`;
+      imports.push(genImport(pkgImport, { name: "*", as: importName }));
     } else {
       resolved = false;
     }
-    code += `\n  ${moduleName}: {`;
-    for (const name of importNames) {
-      code += pkgImport
-        ? `\n    ${name}: _imports_${moduleName}.${name},\n`
-        : `\n    ${name}: () => { throw new Error("\`${moduleName}.${name}\` is not provided!")},\n`;
-    }
-    code += "  },\n";
+
+    importsObject[moduleName] = Object.fromEntries(
+      importNames.map((name) => [
+        name,
+        pkgImport
+          ? `${importName}[${genString(name)}]`
+          : `() => { throw new Error("\`${importName}[${genString(name)}]\` is not provided!")}`,
+      ]),
+    );
   }
 
-  code += "};\n";
+  const code = `${imports.join("\n")};\n\nconst _imports = ${genObjectFromRaw(importsObject)}`;
+
+  console.log(code);
 
   return {
     code,

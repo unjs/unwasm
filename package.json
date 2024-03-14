@@ -48,6 +48,7 @@
     "test:types": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "knitwork": "^1.0.0",
     "magic-string": "^0.30.8",
     "mlly": "^1.6.1",
     "pathe": "^1.1.2",
