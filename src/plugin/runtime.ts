@@ -215,14 +215,12 @@ export async function getWasmImports(
         name,
         pkgImport
           ? `${importName}[${genString(name)}]`
-          : `() => { throw new Error("\`${importName}[${genString(name)}]\` is not provided!")}`,
+          : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
       ]),
     );
   }
 
-  const code = `${imports.join("\n")};\n\nconst _imports = ${genObjectFromRaw(importsObject)}`;
-
-  console.log(code);
+  const code = `${imports.join("\n")}\n\nconst _imports = ${genObjectFromRaw(importsObject)}`;
 
   return {
     code,
