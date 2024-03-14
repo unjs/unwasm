@@ -116,9 +116,13 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return;
       }
 
+      const isModule = id.endsWith("?module");
+
       const buff = Buffer.from(code, "binary");
-      const name = `wasm/${basename(id, ".wasm")}-${sha1(buff)}.wasm`;
-      const parsed = parse(name, buff);
+      const name = `wasm/${basename(id.split("?")[0], ".wasm")}-${sha1(buff)}.wasm`;
+      const parsed = isModule
+        ? { imports: [], exports: ["default"] }
+        : parse(name, buff);
 
       const asset = (assets[name] = <WasmAsset>{
         name,
@@ -129,7 +133,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       });
 
       return {
-        code: id.endsWith("?module")
+        code: isModule
           ? await getWasmModuleBinding(asset, opts)
           : await getWasmESMBinding(asset, opts),
         map: { mappings: "" },
