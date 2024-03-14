@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v0.3.8
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.7...v0.3.8)
+
+### 🚀 Enhancements
+
+- Support `?module` suffix for compatibility ([#23](https://github.com/unjs/unwasm/pull/23))
+
+### 🩹 Fixes
+
+- Generate safe imports code using `knitwork` ([#24](https://github.com/unjs/unwasm/pull/24))
+
+### 🏡 Chore
+
+- Update `@webassemblyjs/wasm-parser` ([e7d94ae](https://github.com/unjs/unwasm/commit/e7d94ae))
+- Update readme ([eaa49e0](https://github.com/unjs/unwasm/commit/eaa49e0))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.7
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.6...v0.3.7)
