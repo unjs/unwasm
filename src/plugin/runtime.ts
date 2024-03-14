@@ -85,7 +85,7 @@ export function getWasmModuleBinding(
 ) {
   return opts.esmImport
     ? js`
-const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
+const _mod = ${opts.lazy === true ? "" : `await`} import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
 export default _mod;
   `
     : js`
