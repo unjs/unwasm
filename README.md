@@ -81,7 +81,7 @@ await initRand({
 There are situations where libraries require a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) instance to initialize [`WebAssembly.Instance`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Instance/Instance) themselves. In order to maximize compatibility, unwasm allows a specific import suffix `?module` to import `.wasm` files as a Module directly.
 
 ```js
-import _sumMod from "unwasm/examples/sum.wasm";
+import _sumMod from "unwasm/examples/sum.wasm?module";
 const { sum } = await WebAssembly.instantiate(_sumMod).then((i) => i.exports);
 ```
 
