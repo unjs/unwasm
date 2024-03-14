@@ -1,31 +1,18 @@
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![Codecov][codecov-src]][codecov-href]
-
 # unwasm
+
+<!-- automd:badges color=yellow codecov -->
+
+[![npm version](https://flat.badgen.net/npm/v/unwasm?color=yellow)](https://npmjs.com/package/unwasm)
+[![npm downloads](https://flat.badgen.net/npm/dm/unwasm?color=yellow)](https://npmjs.com/package/unwasm)
+[![codecov](https://flat.badgen.net/codecov/c/github/unjs/unwasm?color=yellow)](https://codecov.io/gh/unjs/unwasm)
+
+<!-- /automd -->
 
 Universal [WebAssembly](https://webassembly.org/) tools for JavaScript.
 
 ## Goal
 
 This project aims to make a common and future-proof solution for WebAssembly modules support suitable for various JavaScript runtimes, frameworks, and build Tools following [WebAssembly/ES Module Integration](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) proposal from WebAssembly Community Group as much as possible while also trying to keep compatibility with current ecosystem libraries.
-
-## Roadmap
-
-The development will be split into multiple stages.
-
-> [!IMPORTANT]
-> This Project is under development! See the linked discussions to be involved!
-
-- [ ] Builder plugin powered by [unjs/unplugin](https://github.com/unjs/unplugin) ([unjs/unwasm#2](https://github.com/unjs/unwasm/issues/2))
-  - [x] Rollup
-- [ ] Build Tools ([unjs/unwasm#3](https://github.com/unjs/unwasm/issues/3))
-  - [x] `parseWasm`
-- [ ] Runtime Utils ([unjs/unwasm#4](https://github.com/unjs/unwasm/issues/4))
-- [ ] ESM Loader ([unjs/unwasm#5](https://github.com/unjs/unwasm/issues/5))
-- [ ] Integration with [Wasmer](https://github.com/wasmerio) ([unjs/unwasm#6](https://github.com/unjs/unwasm/issues/6))
-- [ ] Convention for library authors exporting wasm modules ([unjs/unwasm#7](https://github.com/unjs/unwasm/issues/7))
-  - [x] Auto resolve imports from the imports map
 
 ## Bindings API
 
@@ -96,19 +83,26 @@ Unwasm needs to transform the `.wasm` imports to the compatible bindings. Curren
 
 First, install the [`unwasm`](https://www.npmjs.com/package/unwasm) npm package.
 
+<!-- automd:pm-install -->
+
 ```sh
+# ✨ Auto-detect
+npx nypm install unwasm
+
 # npm
-npm install --dev unwasm
+npm install unwasm
 
 # yarn
-yarn add -D unwasm
+yarn add unwasm
 
 # pnpm
-pnpm i -D unwasm
+pnpm install unwasm
 
 # bun
-bun i -D unwasm
+bun install unwasm
 ```
+
+<!-- /automd -->
 
 ### Builder Plugins
 
@@ -203,26 +197,38 @@ To hint to the bundler how to resolve imports needed by the `.wasm` file, you ne
 
 **Note:** The imports can also be prefixed with `#` like `#env` if you like to respect Node.js conventions.
 
-## Development
+## Contribution
+
+<details>
+  <summary>Local development</summary>
 
 - Clone this repository
 - Install the latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
 - Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
-- Optionally install [es6-string-html](https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html) extension to make it easier to work with string templates.
+- Run tests using `pnpm dev` or `pnpm test`
+
+</details>
+
+<!-- /automd -->
 
 ## License
 
-Made with 💛
+<!-- automd:contributors license=MIT author="pi0" -->
 
-Published under [MIT License](./LICENSE).
+Published under the [MIT](https://github.com/unjs/unwasm/blob/main/LICENSE) license.
+Made by [@pi0](https://github.com/pi0) and [community](https://github.com/unjs/unwasm/graphs/contributors) 💛
+<br><br>
+<a href="https://github.com/unjs/unwasm/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=unjs/unwasm" />
+</a>
 
-<!-- Badges -->
+<!-- /automd -->
 
-[npm-version-src]: https://img.shields.io/npm/v/unwasm?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-version-href]: https://npmjs.com/package/unwasm
-[npm-downloads-src]: https://img.shields.io/npm/dm/unwasm?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-downloads-href]: https://npmjs.com/package/unwasm
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/unwasm/main?style=flat&colorA=18181B&colorB=F0DB4F
-[codecov-href]: https://codecov.io/gh/unjs/unwasm
+<!-- automd:with-automd -->
+
+---
+
+_🤖 auto updated with [automd](https://automd.unjs.io)_
+
+<!-- /automd -->
