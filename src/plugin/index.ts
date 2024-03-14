@@ -116,10 +116,12 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return;
       }
 
+      const buff = Buffer.from(code, "binary");
+
       const isModule = id.endsWith("?module");
 
-      const buff = Buffer.from(code, "binary");
       const name = `wasm/${basename(id.split("?")[0], ".wasm")}-${sha1(buff)}.wasm`;
+
       const parsed = isModule
         ? { imports: [], exports: ["default"] }
         : parse(name, buff);
