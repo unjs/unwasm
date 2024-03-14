@@ -12,9 +12,15 @@ import {
   UnwasmPluginOptions,
   WasmAsset,
 } from "./shared";
-import { getPluginUtils, getWasmBinding } from "./runtime";
+import {
+  getPluginUtils,
+  getWasmESMBinding,
+  getWasmModuleBinding,
+} from "./runtime";
 
 export type { UnwasmPluginOptions } from "./shared";
+
+const WASM_ID_RE = /\.wasm\??.*$/i;
 
 const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
   const assets: Record<string, WasmAsset> = Object.create(null);
@@ -63,7 +69,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
             external: true,
           };
         }
-        if (id.endsWith(".wasm")) {
+        if (WASM_ID_RE.test(id)) {
           const r = await this.resolve(id, importer, { skipSelf: true });
           if (r?.id && r.id !== id) {
             return {
@@ -91,17 +97,22 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         return getPluginUtils();
       }
 
-      if (!id.endsWith(".wasm") || !existsSync(id)) {
+      if (!WASM_ID_RE.test(id)) {
         return;
       }
 
-      this.addWatchFile(id);
+      const idPath = id.split("?")[0];
+      if (!existsSync(idPath)) {
+        return;
+      }
 
-      const buff = await fs.readFile(id);
+      this.addWatchFile(idPath);
+
+      const buff = await fs.readFile(idPath);
       return buff.toString("binary");
     },
     async transform(code, id) {
-      if (!id.endsWith(".wasm")) {
+      if (!WASM_ID_RE.test(id)) {
         return;
       }
 
@@ -118,7 +129,9 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       });
 
       return {
-        code: await getWasmBinding(asset, opts),
+        code: id.endsWith("?module")
+          ? await getWasmModuleBinding(asset, opts)
+          : await getWasmESMBinding(asset, opts),
         map: { mappings: "" },
       };
     },
@@ -129,8 +142,8 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
 
       if (
         !(
-          chunk.moduleIds.some((id) => id.endsWith(".wasm")) ||
-          chunk.imports.some((id) => id.endsWith(".wasm"))
+          chunk.moduleIds.some((id) => WASM_ID_RE.test(id)) ||
+          chunk.imports.some((id) => WASM_ID_RE.test(id))
         )
       ) {
         return;

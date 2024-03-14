@@ -9,7 +9,10 @@ import {
 // https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html
 const js = String.raw;
 
-export async function getWasmBinding(
+/**
+ * Returns ESM compatible exports binding
+ */
+export async function getWasmESMBinding(
   asset: WasmAsset,
   opts: UnwasmPluginOptions,
 ) {
@@ -71,6 +74,26 @@ ${asset.exports
 export default _mod;
     `;
   }
+}
+
+/**
+ * Returns WebAssembly.Module binding for compatibility
+ */
+export function getWasmModuleBinding(
+  asset: WasmAsset,
+  opts: UnwasmPluginOptions,
+) {
+  return opts.esmImport
+    ? js`
+const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
+export default _mod;
+  `
+    : js`
+import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
+const _data = base64ToUint8Array("${asset.source.toString("base64")}");
+const _mod = new WebAssembly.Module(_data);
+export default _mod;
+  `;
 }
 
 export function getPluginUtils() {

@@ -76,6 +76,18 @@ await initRand({
 > [!NOTE]
 > When using **static import syntax**, and before initializing the module, the named exports will be wrapped into a function by proxy that waits for the module initialization and if called before init, will immediately try to call init without imports and return a Promise that calls a function after init.
 
+### Module compatibility
+
+There are situations where libraries require a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) instance to initialize [`WebAssembly.Instance`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Instance/Instance) themselves. In order to maximize compatibility, unwasm allows a specific import suffix `?module` to import `.wasm` files as a Module directly.
+
+```js
+import _sumMod from "unwasm/examples/sum.wasm";
+const { sum } = await WebAssembly.instantiate(_sumMod).then((i) => i.exports);
+```
+
+> [!NOTE]
+> Open [an issue](https://github.com/unjs/unwasm/issues/new/choose) to us! We would love to help those libraries to migrate!
+
 ## Integration
 
 Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently, the only method is using a rollup plugin. In the future, more usage methods will be introduced.
