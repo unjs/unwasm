@@ -37,6 +37,17 @@ describe("plugin:rollup", () => {
     const resText = await _evalCloudflare(name).then((r) => r.text());
     expect(resText).toBe("OK");
   });
+
+  it("module", async () => {
+    const { output } = await _rollupBuild(
+      "fixture/module-import.mjs",
+      "rollup-module",
+      {},
+    );
+    const code = output[0].code;
+    const mod = await evalModule(code, { url: r("fixture/rollup-module.mjs") });
+    expect(mod.test()).toBe("OK");
+  });
 });
 
 // --- Utils ---
