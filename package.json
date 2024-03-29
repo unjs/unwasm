@@ -75,5 +75,11 @@
     "vite": "^5.2.7",
     "vitest": "^1.4.0"
   },
+  "resolutions": {
+    "@webassemblyjs/helper-wasm-bytecode": "1.12.1",
+    "@webassemblyjs/ieee754": "1.12.1",
+    "@webassemblyjs/leb128": "1.12.1",
+    "@webassemblyjs/utf8": "1.12.1"
+  },
   "packageManager": "pnpm@8.15.5"
 }
