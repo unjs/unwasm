@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.3.9
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.8...v0.3.9)
+
+### 🩹 Fixes
+
+- Update `@webassemblyjs/` deps to 1.12 ([ce6021e](https://github.com/unjs/unwasm/commit/ce6021e))
+
+### 🏡 Chore
+
+- Update deps ([908dd27](https://github.com/unjs/unwasm/commit/908dd27))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v0.3.8
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.7...v0.3.8)
