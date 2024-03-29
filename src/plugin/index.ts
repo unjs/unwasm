@@ -4,6 +4,8 @@ import MagicString from "magic-string";
 import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
 import { createUnplugin } from "unplugin";
 import { parseWasm } from "../tools";
+import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
+import { getPluginUtils } from "./runtime/utils";
 import {
   sha1,
   UMWASM_HELPERS_ID,
@@ -12,11 +14,6 @@ import {
   UnwasmPluginOptions,
   WasmAsset,
 } from "./shared";
-import {
-  getPluginUtils,
-  getWasmESMBinding,
-  getWasmModuleBinding,
-} from "./runtime";
 
 export type { UnwasmPluginOptions } from "./shared";
 
