@@ -12,9 +12,6 @@ import {
   UnwasmPluginOptions,
 } from "./shared";
 
-// https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html
-const js = String.raw;
-
 /**
  * Returns ESM compatible exports binding
  */
@@ -27,7 +24,7 @@ export async function getWasmESMBinding(
 
   // --- Environment dependent code to initialize the wasm module using inlined base 64 or dynamic import ---
   const envCode: string = opts.esmImport
-    ? js`
+    ? /* js */ `
 ${autoImports.code};
 
 async function _instantiate(imports = _imports) {
@@ -35,7 +32,7 @@ async function _instantiate(imports = _imports) {
   return WebAssembly.instantiate(_mod, imports)
 }
   `
-    : js`
+    : /* js */ `
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 ${autoImports.code};
 
@@ -51,7 +48,7 @@ function _instantiate(imports = _imports) {
   // eslint-disable-next-line unicorn/prefer-ternary
   if (canTopAwait) {
     // -- Non proxied exports when no imports are needed and we can have top-level await ---
-    return js`
+    return /* js */ `
 import { getExports } from "${UMWASM_HELPERS_ID}";
 ${envCode}
 
@@ -67,7 +64,7 @@ export default defaultExport;
     `;
   } else {
     // --- Proxied exports when imports are needed or we can't have top-level await ---
-    return js`
+    return /* js */ `
 import { createLazyWasmModule } from "${UMWASM_HELPERS_ID}";
 ${envCode}
 
@@ -90,11 +87,11 @@ export function getWasmModuleBinding(
   opts: UnwasmPluginOptions,
 ) {
   return opts.esmImport
-    ? js`
+    ? /* js */ `
 const _mod = ${opts.lazy === true ? "" : `await`} import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
 export default _mod;
   `
-    : js`
+    : /* js */ `
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 const _data = base64ToUint8Array("${asset.source.toString("base64")}");
 const _mod = new WebAssembly.Module(_data);
@@ -104,7 +101,7 @@ export default _mod;
 
 export function getPluginUtils() {
   // --- Shared utils for the generated code ---
-  return js`
+  return /* js */ `
 export function debug(...args) {
   console.log('[wasm] [debug]', ...args);
 }
