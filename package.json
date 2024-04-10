@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/node": "^20.12.5",
+    "@types/node": "^20.12.7",
     "@vitest/coverage-v8": "^1.4.0",
     "@webassemblyjs/wasm-parser": "^1.12.1",
     "assemblyscript": "^0.27.26",
@@ -67,10 +67,10 @@
     "eslint": "^8.57.0",
     "eslint-config-unjs": "^0.2.1",
     "jiti": "^1.21.0",
-    "miniflare": "^3.20240404.0",
+    "miniflare": "^3.20240405.0",
     "prettier": "^3.2.5",
-    "rollup": "^4.14.0",
-    "typescript": "^5.4.4",
+    "rollup": "^4.14.1",
+    "typescript": "^5.4.5",
     "unbuild": "^2.0.0",
     "vite": "^5.2.8",
     "vitest": "^1.4.0"
