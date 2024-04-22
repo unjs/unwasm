@@ -64,7 +64,7 @@
     "automd": "^0.3.7",
     "changelogen": "^0.5.5",
     "esbuild": "^0.20.2",
-    "eslint": "^8.57.0",
+    "eslint": "^9.1.1",
     "eslint-config-unjs": "^0.2.1",
     "jiti": "^1.21.0",
     "miniflare": "^3.20240405.1",
