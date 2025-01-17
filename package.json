@@ -51,7 +51,7 @@
     "knitwork": "^1.1.0",
     "magic-string": "^0.30.9",
     "mlly": "^1.6.1",
-    "pathe": "^1.1.2",
+    "pathe": "^2.0.2",
     "pkg-types": "^1.0.3",
     "unplugin": "^1.10.1"
   },
