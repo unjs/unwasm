@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/node": "^20.12.7",
+    "@types/node": "^22.13.0",
     "@vitest/coverage-v8": "^1.5.0",
     "@webassemblyjs/wasm-parser": "^1.12.1",
     "assemblyscript": "^0.27.27",
