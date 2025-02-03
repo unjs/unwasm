@@ -3,7 +3,7 @@
 <!-- automd:badges color=yellow codecov -->
 
 [![npm version](https://img.shields.io/npm/v/unwasm?color=yellow)](https://npmjs.com/package/unwasm)
-[![npm downloads](https://img.shields.io/npm/dm/unwasm?color=yellow)](https://npmjs.com/package/unwasm)
+[![npm downloads](https://img.shields.io/npm/dm/unwasm?color=yellow)](https://npm.chart.dev/unwasm)
 [![codecov](https://img.shields.io/codecov/c/gh/unjs/unwasm?color=yellow)](https://codecov.io/gh/unjs/unwasm)
 
 <!-- /automd -->
@@ -100,6 +100,9 @@ pnpm install unwasm
 
 # bun
 bun install unwasm
+
+# deno
+deno install unwasm
 ```
 
 <!-- /automd -->
