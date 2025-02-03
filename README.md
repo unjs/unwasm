@@ -140,7 +140,7 @@ Parses `wasm` binary format with useful information using [webassemblyjs/wasm-pa
 import { readFile } from "node:fs/promises";
 import { parseWasm } from "unwasm/tools";
 
-const source = await readFile(new URL("./examples/sum.wasm", import.meta.url));
+const source = await readFile(new URL("examples/sum.wasm", import.meta.url));
 const parsed = parseWasm(source);
 console.log(JSON.stringify(parsed, undefined, 2));
 ```
@@ -184,7 +184,7 @@ To hint to the bundler how to resolve imports needed by the `.wasm` file, you ne
 
 **Example:**
 
-```js
+```json
 {
   "exports": {
     "./rand.wasm": "./rand.wasm"

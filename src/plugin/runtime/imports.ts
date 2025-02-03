@@ -10,7 +10,7 @@ import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
 export async function getWasmImports(
   asset: WasmAsset,
-  _opts: UnwasmPluginOptions, // eslint-disable-line @typescript-eslint/no-unused-vars
+  _opts: UnwasmPluginOptions,
 ) {
   const importNames = Object.keys(asset.imports || {});
   if (importNames.length === 0) {
@@ -35,7 +35,8 @@ export async function getWasmImports(
 
     const importName = "_imports_" + genSafeVariableName(moduleName);
 
-    if (pkgImport) {
+    // TODO: haandle pkgImport as object
+    if (pkgImport && typeof pkgImport === "string") {
       imports.push(genImport(pkgImport, { name: "*", as: importName }));
     } else {
       resolved = false;
