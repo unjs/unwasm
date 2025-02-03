@@ -5,10 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@webassemblyjs/helper-wasm-bytecode': 1.12.1
-  '@webassemblyjs/ieee754': 1.12.1
-  '@webassemblyjs/leb128': 1.12.1
-  '@webassemblyjs/utf8': 1.12.1
+  '@webassemblyjs/helper-wasm-bytecode': 1.14.1
+  '@webassemblyjs/ieee754': 1.14.1
+  '@webassemblyjs/leb128': 1.14.1
+  '@webassemblyjs/utf8': 1.14.1
 
 importers:
 
@@ -950,17 +950,17 @@ packages:
   '@webassemblyjs/helper-numbers@1.13.2':
     resolution: {integrity: sha512-FE8aCmS5Q6eQYcV3gI35O4J789wlQA+7JrqTTpJqn5emA4U2hvwJmvFRC0HODS+3Ye6WioDklgd6scJ3+PLnEA==}
 
-  '@webassemblyjs/helper-wasm-bytecode@1.12.1':
-    resolution: {integrity: sha512-flsRYmCqN2ZJmvAyNxZXPPFkwKoezeTUczytfBovql8cOjYTr6OTcZvku4UzyKFW0Kj+PgD+UaG8/IdX31EYWg==}
+  '@webassemblyjs/helper-wasm-bytecode@1.14.1':
+    resolution: {integrity: sha512-qAvwav8dfXjy+4eIsCCBzJX41a+CqVW0c91R6dvDoOlXbtT2AlNuG6GCnXBYrdEHNKRKBmn02asjyw+q5zHfMg==}
 
-  '@webassemblyjs/ieee754@1.12.1':
-    resolution: {integrity: sha512-fcrUCqE2dVldeVAHTWFiTiKMS9ivc5jOgB2c30zYOZnm3O54SWeMJWS/HXYK862we2AYHtf6GYuP9xG9J+5zyQ==}
+  '@webassemblyjs/ieee754@1.14.1':
+    resolution: {integrity: sha512-hZDDfS2/NYPw+/0eFSqFZQ+WGNlFERxj1C6ObV7FxGUrNkoVuTRl8A6+Tg9prfFxD2O84Jxx7rbZAggO9EAQDg==}
 
-  '@webassemblyjs/leb128@1.12.1':
-    resolution: {integrity: sha512-jOU6pTFNf7aGm46NCrEU7Gj6cVuP55T7+kyo5TU/rCduZ5EdwMPBZwSwwzjPZ3eFXYFCmC5wZdPZN0ZWio6n4Q==}
+  '@webassemblyjs/leb128@1.14.1':
+    resolution: {integrity: sha512-SxIMbt0XzSD/wmkbCdU0Efy4xSlKe0M7DJOoFimyAPBJ5BI6E1RaSQSloU7aKk8ZaCz3T/FFy3MEbAyyYLQI9A==}
 
-  '@webassemblyjs/utf8@1.12.1':
-    resolution: {integrity: sha512-zcZvnAY3/M28Of012dksIfC26qZQJlj2PQCCvxqlsRJHOYtasp+OvK8nRcg11TKzAAv3ja7Y0NEBMKAjH6ljnw==}
+  '@webassemblyjs/utf8@1.14.1':
+    resolution: {integrity: sha512-ppmr21h5laouMyJRgAG26qHm/bueeSuiOBcDh9TiyO5+XfGlzi5AkaysAD4JkmrqHtf/tvc/GZmc+5O+qWhakA==}
 
   '@webassemblyjs/wasm-parser@1.14.1':
     resolution: {integrity: sha512-JLBl+KZ0R5qB7mCnud/yyX08jWFw5MsoalJ1pQ4EdFlgj9VdXKGuENGsiCIjegI1W7p91rUlcB/LB5yRJKNTcQ==}
@@ -3355,7 +3355,7 @@ snapshots:
   '@webassemblyjs/ast@1.14.1':
     dependencies:
       '@webassemblyjs/helper-numbers': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.12.1
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1
 
   '@webassemblyjs/floating-point-hex-parser@1.13.2': {}
 
@@ -3367,26 +3367,26 @@ snapshots:
       '@webassemblyjs/helper-api-error': 1.13.2
       '@xtuc/long': 4.2.2
 
-  '@webassemblyjs/helper-wasm-bytecode@1.12.1': {}
+  '@webassemblyjs/helper-wasm-bytecode@1.14.1': {}
 
-  '@webassemblyjs/ieee754@1.12.1':
+  '@webassemblyjs/ieee754@1.14.1':
     dependencies:
       '@xtuc/ieee754': 1.2.0
 
-  '@webassemblyjs/leb128@1.12.1':
+  '@webassemblyjs/leb128@1.14.1':
     dependencies:
       '@xtuc/long': 4.2.2
 
-  '@webassemblyjs/utf8@1.12.1': {}
+  '@webassemblyjs/utf8@1.14.1': {}
 
   '@webassemblyjs/wasm-parser@1.14.1':
     dependencies:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/helper-api-error': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.12.1
-      '@webassemblyjs/ieee754': 1.12.1
-      '@webassemblyjs/leb128': 1.12.1
-      '@webassemblyjs/utf8': 1.12.1
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1
+      '@webassemblyjs/ieee754': 1.14.1
+      '@webassemblyjs/leb128': 1.14.1
+      '@webassemblyjs/utf8': 1.14.1
 
   '@xtuc/ieee754@1.2.0': {}
 

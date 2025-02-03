@@ -76,10 +76,10 @@
     "vitest": "^2.1.9"
   },
   "resolutions": {
-    "@webassemblyjs/helper-wasm-bytecode": "1.12.1",
-    "@webassemblyjs/ieee754": "1.12.1",
-    "@webassemblyjs/leb128": "1.12.1",
-    "@webassemblyjs/utf8": "1.12.1"
+    "@webassemblyjs/helper-wasm-bytecode": "1.14.1",
+    "@webassemblyjs/ieee754": "1.14.1",
+    "@webassemblyjs/leb128": "1.14.1",
+    "@webassemblyjs/utf8": "1.14.1"
   },
   "packageManager": "pnpm@9.15.5"
 }
