@@ -5,6 +5,8 @@ import {
   genString,
   genImport,
 } from "knitwork";
+import fs from "node:fs";
+import path from "node:path";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
@@ -28,8 +30,11 @@ export async function getWasmImports(
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
 
+  const directory = path.dirname(asset.id);
+
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
+    let importFound = false;
     const pkgImport =
       pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
 
@@ -37,7 +42,11 @@ export async function getWasmImports(
 
     // TODO: haandle pkgImport as object
     if (pkgImport && typeof pkgImport === "string") {
+      importFound = true;
       imports.push(genImport(pkgImport, { name: "*", as: importName }));
+    } else if (fs.existsSync(path.resolve(directory, moduleName))) {
+      importFound = true;
+      imports.push(genImport(moduleName, { name: "*", as: importName }));
     } else {
       resolved = false;
     }
@@ -45,7 +54,7 @@ export async function getWasmImports(
     importsObject[moduleName] = Object.fromEntries(
       importNames.map((name) => [
         name,
-        pkgImport
+        importFound
           ? `${importName}[${genString(name)}]`
           : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
       ]),
