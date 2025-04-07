@@ -48,6 +48,19 @@ describe("plugin:rollup", () => {
     const mod = await evalModule(code, { url: r("fixture/rollup-module.mjs") });
     expect(mod.test()).toBe("OK");
   });
+
+  it("esm-integration", async () => {
+    const { output } = await _rollupBuild(
+      "fixture/esm-integration.mjs",
+      "rollup-inline",
+      {},
+    );
+    const code = output[0].code;
+    const mod = await evalModule(code, {
+      url: r("fixture/esm-integration.mjs"),
+    });
+    expect(mod.test()).toBe("OK");
+  });
 });
 
 // --- Utils ---
