@@ -87,6 +87,9 @@ importers:
       vitest:
         specifier: ^3.0.5
         version: 3.0.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
+      wabt:
+        specifier: ^1.0.37
+        version: 1.0.37
 
 packages:
 
@@ -2579,6 +2582,10 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  wabt@1.0.37:
+    resolution: {integrity: sha512-2B/TH4ppwtlkUosLtuIimKsTVnqM8aoXxYHnu/WOxiSqa+CGoZXmG+pQyfDQjEKIAc7GqFlJsuCKuK8rIPL1sg==}
+    hasBin: true
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
@@ -5094,6 +5101,8 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  wabt@1.0.37: {}
 
   webpack-virtual-modules@0.6.2: {}
 
