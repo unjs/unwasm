@@ -83,7 +83,7 @@ importers:
         version: 3.3.1(typescript@5.7.3)
       vite:
         specifier: ^6.1.0
-        version: 6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
+        version: 6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
       vitest:
         specifier: ^3.0.5
         version: 3.0.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
@@ -2512,8 +2512,8 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
-  vite@6.1.4:
-    resolution: {integrity: sha512-VzONrF/qqEg/JBwHXBJdVSmBZBhwiPGinyUb0SQLByqQwi6o8UvX5TWLkpvkq3tvN8Cr273ieZDt36CGwWRMvA==}
+  vite@6.1.5:
+    resolution: {integrity: sha512-H/gAFpW5I4ow/8Bz4t4i8k2St5JThMlqUT8gsH5v0rkqbqpf4qLrFozjq/V2KG1iOXF+3Ko9mlG0kmGerktWJw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -3324,13 +3324,13 @@ snapshots:
       chai: 5.1.2
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.0.5(vite@6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0))':
+  '@vitest/mocker@3.0.5(vite@6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0))':
     dependencies:
       '@vitest/spy': 3.0.5
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
+      vite: 6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
 
   '@vitest/pretty-format@3.0.5':
     dependencies:
@@ -5031,7 +5031,7 @@ snapshots:
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.3
-      vite: 6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
+      vite: 6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -5046,7 +5046,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0):
+  vite@6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0):
     dependencies:
       esbuild: 0.24.2
       postcss: 8.5.3
@@ -5060,7 +5060,7 @@ snapshots:
   vitest@3.0.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0):
     dependencies:
       '@vitest/expect': 3.0.5
-      '@vitest/mocker': 3.0.5(vite@6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0))
+      '@vitest/mocker': 3.0.5(vite@6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0))
       '@vitest/pretty-format': 3.0.5
       '@vitest/runner': 3.0.5
       '@vitest/snapshot': 3.0.5
@@ -5076,7 +5076,7 @@ snapshots:
       tinyexec: 0.3.2
       tinypool: 1.0.2
       tinyrainbow: 2.0.0
-      vite: 6.1.4(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
+      vite: 6.1.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
       vite-node: 3.0.5(@types/node@22.13.1)(jiti@2.4.2)(yaml@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
