@@ -5,7 +5,6 @@ import {
   genString,
   genImport,
 } from "knitwork";
-import fs from "node:fs";
 import path from "node:path";
 import { resolveModulePath } from "exsolve";
 
