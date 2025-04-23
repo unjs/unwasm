@@ -61,6 +61,20 @@ describe("plugin:rollup", () => {
     });
     expect(mod.test()).toBe("OK");
   });
+
+  it("esm-integration-missing-import", async () => {
+    await expect(() =>
+      _rollupBuild(
+        "fixture/esm-integration-missing-import.mjs",
+        "rollup-inline",
+        {},
+      ),
+    ).rejects.toThrowError(
+      expect.objectContaining({
+        code: "MISSING_EXPORT",
+      }),
+    );
+  });
 });
 
 // --- Utils ---

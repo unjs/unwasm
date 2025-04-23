@@ -7,6 +7,7 @@ import {
 } from "knitwork";
 import fs from "node:fs";
 import path from "node:path";
+import { resolveModulePath } from "exsolve";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
@@ -41,12 +42,15 @@ export async function getWasmImports(
     const importName = "_imports_" + genSafeVariableName(moduleName);
 
     // TODO: haandle pkgImport as object
+    let esmPath;
     if (pkgImport && typeof pkgImport === "string") {
       importFound = true;
       imports.push(genImport(pkgImport, { name: "*", as: importName }));
-    } else if (fs.existsSync(path.resolve(directory, moduleName))) {
+    } else if (
+      (esmPath = resolveModulePath(moduleName, { from: directory, try: true }))
+    ) {
       importFound = true;
-      imports.push(genImport(moduleName, { name: "*", as: importName }));
+      imports.push(genImport(esmPath, { name: "*", as: importName }));
     } else {
       resolved = false;
     }
