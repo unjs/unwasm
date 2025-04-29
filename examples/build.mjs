@@ -32,3 +32,4 @@ process.chdir(fileURLToPath(new URL(".", import.meta.url)));
 await compile("sum");
 await compile("rand");
 await compileWat("add-esmi");
+await compileWat("treeshake");
