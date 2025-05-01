@@ -5,6 +5,8 @@ import {
   genString,
   genImport,
 } from "knitwork";
+import path from "node:path";
+import { resolveModulePath } from "exsolve";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
@@ -28,16 +30,26 @@ export async function getWasmImports(
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
 
+  const directory = path.dirname(asset.id);
+
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
+    let importFound = false;
     const pkgImport =
       pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
 
     const importName = "_imports_" + genSafeVariableName(moduleName);
 
     // TODO: haandle pkgImport as object
+    let esmPath;
     if (pkgImport && typeof pkgImport === "string") {
+      importFound = true;
       imports.push(genImport(pkgImport, { name: "*", as: importName }));
+    } else if (
+      (esmPath = resolveModulePath(moduleName, { from: directory, try: true }))
+    ) {
+      importFound = true;
+      imports.push(genImport(esmPath, { name: "*", as: importName }));
     } else {
       resolved = false;
     }
@@ -45,7 +57,7 @@ export async function getWasmImports(
     importsObject[moduleName] = Object.fromEntries(
       importNames.map((name) => [
         name,
-        pkgImport
+        importFound
           ? `${importName}[${genString(name)}]`
           : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
       ]),
