@@ -48,6 +48,57 @@ describe("plugin:rollup", () => {
     const mod = await evalModule(code, { url: r("fixture/rollup-module.mjs") });
     expect(mod.test()).toBe("OK");
   });
+
+  it("esm-integration", async () => {
+    const { output } = await _rollupBuild(
+      "fixture/esm-integration.mjs",
+      "rollup-inline",
+      {},
+    );
+    const code = output[0].code;
+    const mod = await evalModule(code, {
+      url: r("fixture/esm-integration.mjs"),
+    });
+    expect(mod.test()).toBe("OK");
+  });
+
+  it("esm-integration-missing-import", async () => {
+    await expect(() =>
+      _rollupBuild(
+        "fixture/esm-integration-missing-import.mjs",
+        "rollup-inline",
+        {},
+      ),
+    ).rejects.toThrowError(
+      expect.objectContaining({
+        code: "MISSING_EXPORT",
+      }),
+    );
+  });
+
+  it("treeshake", async () => {
+    const { output } = await _rollupBuild(
+      "fixture/treeshake.mjs",
+      "rollup-inline",
+      {
+        treeshake: true,
+      },
+    );
+    const code = output[0].code;
+    // Check that the unused export 'functionTwo' is removed from the Wasm
+    // module.
+    const wasm = getBase64WasmModule(code);
+    expect(wasm).toBeTruthy();
+    const module = await WebAssembly.compile(Buffer.from(wasm, "base64"));
+    const exports = WebAssembly.Module.exports(module);
+    expect(exports.length).toEqual(1);
+    expect(exports[0].name).toEqual("functionOne");
+    // Ensure that it still runs after dce.
+    const mod = await evalModule(code, {
+      url: r("fixture/treeshake.mjs"),
+    });
+    expect(mod.test()).toBe("OK");
+  });
 });
 
 // --- Utils ---
@@ -87,4 +138,13 @@ export default {
   const res = await mf.dispatchFetch("http://localhost");
   await mf.dispose();
   return res;
+}
+
+function getBase64WasmModule(code: string) {
+  const start = code.indexOf('base64ToUint8Array("');
+  if (start === -1) {
+    return false;
+  }
+  const end = code.indexOf('")', start);
+  return code.slice(start + 20, end);
 }

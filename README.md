@@ -200,6 +200,24 @@ To hint to the bundler how to resolve imports needed by the `.wasm` file, you ne
 
 **Note:** The imports can also be prefixed with `#` like `#env` if you like to respect Node.js conventions.
 
+## Wasm ESM Imports
+
+unwasm also supports importing from other ES modules in Wasm (read more: [ESM Integration Spec](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration)).
+
+**Example:**
+
+```wast
+(module
+  (import "./add-esmi-deps.mjs" "getValue" (func $getValue (result i32)))
+
+  (func (export "addImported") (param $a i32) (result i32)
+    local.get $a
+    call $getValue
+    i32.add
+  )
+)
+```
+
 ## Contribution
 
 <details>
