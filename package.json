@@ -67,7 +67,7 @@
     "eslint": "^9.33.0",
     "eslint-config-unjs": "^0.5.0",
     "jiti": "^2.5.1",
-    "miniflare": "^3.20250718.1",
+    "miniflare": "^4.20250813.1",
     "prettier": "^3.6.2",
     "rollup": "^4.46.2",
     "typescript": "^5.9.2",
