@@ -34,7 +34,7 @@ export async function getWasmImports(
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
 
-    // TODO: haandle pkgImport as object
+    // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
     // TODO: Throw error if resolve failed in next major
     const importAlias =
       pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
