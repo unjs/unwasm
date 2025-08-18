@@ -1,6 +1,6 @@
 {
   "name": "unwasm",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "WebAssembly tools for JavaScript",
   "repository": "unjs/unwasm",
   "license": "MIT",

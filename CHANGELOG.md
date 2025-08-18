@@ -1,6 +1,36 @@
 # Changelog
 
 
+## v0.3.10
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.9...v0.3.10)
+
+### 💅 Refactors
+
+- Split runtime logic ([44fd280](https://github.com/unjs/unwasm/commit/44fd280))
+- Update pkg-types to v2 ([ffadf66](https://github.com/unjs/unwasm/commit/ffadf66))
+
+### 📦 Build
+
+- Update `webassemblyjs@1.13.2` ([a0336a3](https://github.com/unjs/unwasm/commit/a0336a3))
+
+### 🏡 Chore
+
+- **release:** V0.3.9 ([bad69a5](https://github.com/unjs/unwasm/commit/bad69a5))
+- Update inline template highlighting ([adabaa8](https://github.com/unjs/unwasm/commit/adabaa8))
+- Update repo ([123296a](https://github.com/unjs/unwasm/commit/123296a))
+- Apply automated updates ([ce46b64](https://github.com/unjs/unwasm/commit/ce46b64))
+- Update dev dependencies ([904f567](https://github.com/unjs/unwasm/commit/904f567))
+
+### 🤖 CI
+
+- Workaround corepack issue ([f8dbeb1](https://github.com/unjs/unwasm/commit/f8dbeb1))
+- Update autofix action ([53e5c62](https://github.com/unjs/unwasm/commit/53e5c62))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.3.9
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.8...v0.3.9)
