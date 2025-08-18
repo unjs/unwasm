@@ -1,46 +1,63 @@
-import fs from "node:fs";
-import tmp from "tmp";
-import which from "which";
+import fs, { mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { UnwasmPluginOptions } from "../shared";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 export function treeshake(
   source: Buffer,
   exports: string[],
   opts: UnwasmPluginOptions,
 ): Buffer {
-  const wasmMetaDcePath = opts.wasmMetaDCE ?? which.sync("wasm-metadce");
   // Create the wasm-metadce graph.
   const graph = [
     {
       name: "outside",
-      reaches: [...exports],
       root: true,
+      reaches: [...exports],
     },
-  ];
+  ] as { name: string; root?: boolean; reaches?: string[]; export?: string }[];
   for (const exportName of exports) {
     graph.push({
       name: exportName,
       export: exportName,
     });
   }
-  let output;
-  const graphFile = tmp.fileSync({ postfix: ".json" });
-  const wasmFile = tmp.fileSync({ postfix: ".wasm" });
-  const outputFile = tmp.fileSync({ postfix: ".wasm" });
+
+  // Wasm Meta DCE binary
+  const wasmMetaDCEBin = opts.commands?.wasmMetaDCE || "wasm-metadce";
+
+  // Temporary files
+  const tmpDir = join(
+    tmpdir(),
+    "unwasm-" + Math.random().toString(36).slice(2),
+  );
+  const graphFile = join(tmpDir, "graph.json");
+  const wasmFile = join(tmpDir, "input.wasm");
+  const outputFile = join(tmpDir, "output.wasm");
+  mkdirSync(tmpDir, { recursive: true });
+  fs.writeFileSync(graphFile, JSON.stringify(graph));
+  fs.writeFileSync(wasmFile, source);
+
+  // Execute the wasm-metadce command
   try {
-    fs.writeFileSync(graphFile.name, JSON.stringify(graph));
-    fs.writeFileSync(wasmFile.name, source);
     execSync(
-      `${wasmMetaDcePath} ${wasmFile.name} --graph-file ${graphFile.name} -o ${outputFile.name}`,
+      `${wasmMetaDCEBin} ${wasmFile} --graph-file ${graphFile} -o ${outputFile}`,
+      { stdio: "ignore" },
     );
-    output = fs.readFileSync(outputFile.name);
+    return fs.readFileSync(outputFile);
+  } catch (error) {
+    throw new Error(
+      [
+        error instanceof Error ? error.message : String(error),
+        `Hint: Make sure "wasm-metadce" (part of binaryen) is installed and on your PATH,`,
+        `or set commands.wasmMetaDCE option to the full path of the executable.`,
+      ].join(" "),
+      { cause: error },
+    );
   } finally {
-    graphFile.removeCallback();
-    wasmFile.removeCallback();
-    outputFile.removeCallback();
+    fs.rmSync(tmpDir, { force: true, recursive: true });
   }
-  return output;
 }
 
 /**

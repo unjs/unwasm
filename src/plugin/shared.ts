@@ -24,12 +24,10 @@ export interface UnwasmPluginOptions {
    */
   treeshake?: boolean;
 
-  /**
-   * Path to wasm-metadce binary. Defaults to `which wasm-metadce` from the
-   * system.
-   *
-   */
-  wasmMetaDCE?: string;
+  commands?: {
+    /** Path to wasm-metadce binary. Defaults to `wasm-metadce` from the system. */
+    wasmMetaDCE?: string;
+  };
 }
 
 export type WasmAsset = {
