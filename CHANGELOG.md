@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.3.11
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.10...v0.3.11)
+
+### 🩹 Fixes
+
+- Add missing opcodes to support parsing prisma wasm ([#68](https://github.com/unjs/unwasm/pull/68))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.3.10
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.9...v0.3.10)
