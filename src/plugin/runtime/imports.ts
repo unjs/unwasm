@@ -1,4 +1,5 @@
-import { readPackageJSON } from "pkg-types";
+// TODO: Use normal import in next major with ESM-only dist
+// import { readPackageJSON } from "pkg-types";
 import {
   genSafeVariableName,
   genObjectFromRaw,
@@ -23,6 +24,7 @@ export async function getWasmImports(
   }
 
   // Try to resolve from nearest package.json
+  const { readPackageJSON } = await import("pkg-types");
   const pkgJSON = await readPackageJSON(asset.id);
 
   let resolved = true;
