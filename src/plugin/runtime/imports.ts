@@ -6,6 +6,7 @@ import {
   genString,
   genImport,
 } from "knitwork";
+import { resolveModulePath } from "exsolve";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
@@ -23,31 +24,36 @@ export async function getWasmImports(
 
   // Try to resolve from nearest package.json
   const { readPackageJSON } = await import("pkg-types");
-  const pkgJSON = await readPackageJSON(asset.id);
+  const pkg = await readPackageJSON(asset.id);
 
-  let resolved = true;
+  const resolved = true;
 
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
 
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
-    const pkgImport =
-      pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
+
+    // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
+    // TODO: Throw error if resolve failed in next major
+    const importAlias =
+      pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
+    const resolved =
+      importAlias && typeof importAlias === "string"
+        ? importAlias
+        : resolveModulePath(moduleName, { from: asset.id, try: true });
 
     const importName = "_imports_" + genSafeVariableName(moduleName);
 
     // TODO: haandle pkgImport as object
-    if (pkgImport && typeof pkgImport === "string") {
-      imports.push(genImport(pkgImport, { name: "*", as: importName }));
-    } else {
-      resolved = false;
+    if (resolved) {
+      imports.push(genImport(resolved, { name: "*", as: importName }));
     }
 
     importsObject[moduleName] = Object.fromEntries(
       importNames.map((name) => [
         name,
-        pkgImport
+        resolved
           ? `${importName}[${genString(name)}]`
           : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
       ]),

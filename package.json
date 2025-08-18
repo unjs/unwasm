@@ -48,6 +48,7 @@
     "test:types": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "exsolve": "^1.0.4",
     "knitwork": "^1.2.0",
     "magic-string": "^0.30.17",
     "mlly": "^1.7.4",
@@ -75,7 +76,8 @@
     "typescript": "^5.9.2",
     "unbuild": "^3.6.1",
     "vite": "^7.1.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wabt": "^1.0.37"
   },
   "resolutions": {
     "@webassemblyjs/helper-wasm-bytecode": "1.14.1",

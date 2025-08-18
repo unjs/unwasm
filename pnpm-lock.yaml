@@ -19,6 +19,9 @@ importers:
 
   .:
     dependencies:
+      exsolve:
+        specifier: ^1.0.4
+        version: 1.0.7
       knitwork:
         specifier: ^1.2.0
         version: 1.2.0
@@ -71,9 +74,6 @@ importers:
       eslint-config-unjs:
         specifier: ^0.5.0
         version: 0.5.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
-      exsolve:
-        specifier: ^1.0.7
-        version: 1.0.7
       jiti:
         specifier: ^2.5.1
         version: 2.5.1
@@ -98,6 +98,9 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)
+      wabt:
+        specifier: ^1.0.37
+        version: 1.0.37
 
 packages:
 
@@ -2408,6 +2411,10 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  wabt@1.0.37:
+    resolution: {integrity: sha512-2B/TH4ppwtlkUosLtuIimKsTVnqM8aoXxYHnu/WOxiSqa+CGoZXmG+pQyfDQjEKIAc7GqFlJsuCKuK8rIPL1sg==}
+    hasBin: true
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
@@ -4739,6 +4746,8 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  wabt@1.0.37: {}
 
   webpack-virtual-modules@0.6.2: {}
 
