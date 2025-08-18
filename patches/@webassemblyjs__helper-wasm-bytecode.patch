@@ -1,0 +1,41 @@
+diff --git a/lib/index.js b/lib/index.js
+index 7390d66de519bc3c9a8b0cadb6ff35176d54a32d..b0a829afd5f8c3c54c91b9639aaee16d02d698c8 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -401,7 +401,35 @@ var symbolsByByte = {
+   0xfe4b: createSymbolObject("atomic.rmw16_u.cmpxchg_u", "i32", 1),
+   0xfe4c: createSymbolObject("atomic.rmw8_u.cmpxchg_u", "i64", 1),
+   0xfe4d: createSymbolObject("atomic.rmw16_u.cmpxchg_u", "i64", 1),
+-  0xfe4e: createSymbolObject("atomic.rmw32_u.cmpxchg_u", "i64", 1)
++  0xfe4e: createSymbolObject("atomic.rmw32_u.cmpxchg_u", "i64", 1),
++
++  // FC (misc prefix) — saturating trunc + bulk-mem
++  0xfc07: createSymbolObject("trunc_sat_f64_u", "i64", 0), // i64.trunc_sat_f64_u
++  0xfc03: createSymbolObject("trunc_sat_f64_u", "i32", 0), // i32.trunc_sat_f64_u
++  0xfc06: createSymbolObject("trunc_sat_f64_s", "i64", 0), // i64.trunc_sat_f64_s
++
++  // Core + Exception Handling (EH) proposal
++  0x0:   createSymbolObject("unreachable", "void", 0),
++  0x6:   createSymbolObject("try",         "block", 1),  // blocktype immediate
++  0x7:   createSymbolObject("catch",       "tag",   1),  // tagidx immediate
++  0x8:   createSymbolObject("throw",       "tag",   1),  // tagidx immediate
++  0xa:   createSymbolObject("throw_ref",   "exnref",0),  // rethrow from stack (no immediate)
++  0xc:   createSymbolObject("br",          "label", 1),  // labelidx immediate
++  0x18:  createSymbolObject("delegate",    "label", 1),  // labelidx immediate
++
++  // The following single-byte opcodes are NOT assigned in core, and not valid
++  // single-byte encodings for SIMD/atomics/gc either (those use FD/FE/FB/FC prefixes):
++  0xe8: illegalop,
++  0xf7: illegalop,
++  0xf6: illegalop,
++  0xf5: illegalop,
++
++  // Same here — these single-byte values don’t correspond to any standardized core/EH op:
++  0xc6: illegalop,
++  0xcb: illegalop,
++  0xcf: illegalop,
++  0xdb: illegalop,
++  0xdc: illegalop,
+ };
+ var symbolsByName = invertMap(symbolsByByte, function (obj) {
+   if (typeof obj.object === "string") {

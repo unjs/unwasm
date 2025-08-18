@@ -1,11 +1,11 @@
-import { readPackageJSON } from "pkg-types";
+// TODO: Use normal import in next major with ESM-only dist
+// import { readPackageJSON } from "pkg-types";
 import {
   genSafeVariableName,
   genObjectFromRaw,
   genString,
   genImport,
 } from "knitwork";
-import path from "node:path";
 import { resolveModulePath } from "exsolve";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
@@ -23,41 +23,37 @@ export async function getWasmImports(
   }
 
   // Try to resolve from nearest package.json
-  const pkgJSON = await readPackageJSON(asset.id);
+  const { readPackageJSON } = await import("pkg-types");
+  const pkg = await readPackageJSON(asset.id);
 
-  let resolved = true;
+  const resolved = true;
 
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
 
-  const directory = path.dirname(asset.id);
-
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
-    let importFound = false;
-    const pkgImport =
-      pkgJSON.imports?.[moduleName] || pkgJSON.imports?.[`#${moduleName}`];
+
+    // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
+    // TODO: Throw error if resolve failed in next major
+    const importAlias =
+      pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
+    const resolved =
+      importAlias && typeof importAlias === "string"
+        ? importAlias
+        : resolveModulePath(moduleName, { from: asset.id, try: true });
 
     const importName = "_imports_" + genSafeVariableName(moduleName);
 
     // TODO: haandle pkgImport as object
-    let esmPath;
-    if (pkgImport && typeof pkgImport === "string") {
-      importFound = true;
-      imports.push(genImport(pkgImport, { name: "*", as: importName }));
-    } else if (
-      (esmPath = resolveModulePath(moduleName, { from: directory, try: true }))
-    ) {
-      importFound = true;
-      imports.push(genImport(esmPath, { name: "*", as: importName }));
-    } else {
-      resolved = false;
+    if (resolved) {
+      imports.push(genImport(resolved, { name: "*", as: importName }));
     }
 
     importsObject[moduleName] = Object.fromEntries(
       importNames.map((name) => [
         name,
-        importFound
+        resolved
           ? `${importName}[${genString(name)}]`
           : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
       ]),
