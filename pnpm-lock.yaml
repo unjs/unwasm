@@ -38,6 +38,9 @@ importers:
         specifier: ^2.3.6
         version: 2.3.6
     devDependencies:
+      '@prisma/client':
+        specifier: ^6.14.0
+        version: 6.14.0(typescript@5.9.2)
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.1
         version: 16.0.1(rollup@4.46.3)
@@ -68,6 +71,9 @@ importers:
       eslint-config-unjs:
         specifier: ^0.5.0
         version: 0.5.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
+      exsolve:
+        specifier: ^1.0.7
+        version: 1.0.7
       jiti:
         specifier: ^2.5.1
         version: 2.5.1
@@ -625,6 +631,18 @@ packages:
 
   '@poppinss/exception@1.2.2':
     resolution: {integrity: sha512-m7bpKCD4QMlFCjA/nKTs23fuvoVFoA83brRKmObCUNmi/9tVu8Ve3w4YQAnJu4q3Tjf5fr685HYIC/IA2zHRSg==}
+
+  '@prisma/client@6.14.0':
+    resolution: {integrity: sha512-8E/Nk3eL5g7RQIg/LUj1ICyDmhD053STjxrPxUtCRybs2s/2sOEcx9NpITuAOPn07HEpWBfhAVe1T/HYWXUPOw==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
 
   '@rollup/plugin-alias@5.1.1':
     resolution: {integrity: sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==}
@@ -2845,6 +2863,10 @@ snapshots:
       supports-color: 10.2.0
 
   '@poppinss/exception@1.2.2': {}
+
+  '@prisma/client@6.14.0(typescript@5.9.2)':
+    optionalDependencies:
+      typescript: 5.9.2
 
   '@rollup/plugin-alias@5.1.1(rollup@4.46.3)':
     optionalDependencies:
