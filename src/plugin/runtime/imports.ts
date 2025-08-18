@@ -34,7 +34,8 @@ export async function getWasmImports(
   for (const moduleName of importNames) {
     const importNames = asset.imports[moduleName];
 
-    // // TODO: haandle pkgImport as object
+    // TODO: haandle pkgImport as object
+    // TODO: Throw error if resolve failed in next major
     const importAlias =
       pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
     const resolved =
