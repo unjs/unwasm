@@ -6,6 +6,7 @@ import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
 import { UnwasmPluginOptions, rollup as unwasmRollup } from "../src/plugin";
+import { execSync } from "node:child_process";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -76,7 +77,16 @@ describe("plugin:rollup", () => {
     );
   });
 
-  it("treeshake", async () => {
+  // const hasBin =
+  let wasmMetaDCEBinExists: boolean;
+  try {
+    execSync("wasm-metadce --version");
+    wasmMetaDCEBinExists = true;
+  } catch {
+    wasmMetaDCEBinExists = false;
+  }
+
+  it.skipIf(!wasmMetaDCEBinExists)("treeshake", async () => {
     const { output } = await _rollupBuild(
       "fixture/treeshake.mjs",
       "rollup-inline",
