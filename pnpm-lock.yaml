@@ -10,6 +10,11 @@ overrides:
   '@webassemblyjs/leb128': 1.14.1
   '@webassemblyjs/utf8': 1.14.1
 
+patchedDependencies:
+  '@webassemblyjs/helper-wasm-bytecode':
+    hash: 339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101
+    path: patches/@webassemblyjs__helper-wasm-bytecode.patch
+
 importers:
 
   .:
@@ -33,6 +38,9 @@ importers:
         specifier: ^2.3.6
         version: 2.3.6
     devDependencies:
+      '@prisma/client':
+        specifier: ^6.14.0
+        version: 6.14.0(typescript@5.9.2)
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.1
         version: 16.0.1(rollup@4.46.3)
@@ -41,7 +49,7 @@ importers:
         version: 24.3.0
       '@vitest/coverage-v8':
         specifier: ^3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0))
+        version: 3.2.4(vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1))
       '@webassemblyjs/wasm-parser':
         specifier: ^1.14.1
         version: 1.14.1
@@ -63,6 +71,9 @@ importers:
       eslint-config-unjs:
         specifier: ^0.5.0
         version: 0.5.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
+      exsolve:
+        specifier: ^1.0.7
+        version: 1.0.7
       jiti:
         specifier: ^2.5.1
         version: 2.5.1
@@ -83,10 +94,10 @@ importers:
         version: 3.6.1(typescript@5.9.2)
       vite:
         specifier: ^7.1.2
-        version: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+        version: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)
       vitest:
         specifier: ^3.2.4
-        version: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+        version: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)
 
 packages:
 
@@ -620,6 +631,18 @@ packages:
 
   '@poppinss/exception@1.2.2':
     resolution: {integrity: sha512-m7bpKCD4QMlFCjA/nKTs23fuvoVFoA83brRKmObCUNmi/9tVu8Ve3w4YQAnJu4q3Tjf5fr685HYIC/IA2zHRSg==}
+
+  '@prisma/client@6.14.0':
+    resolution: {integrity: sha512-8E/Nk3eL5g7RQIg/LUj1ICyDmhD053STjxrPxUtCRybs2s/2sOEcx9NpITuAOPn07HEpWBfhAVe1T/HYWXUPOw==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
 
   '@rollup/plugin-alias@5.1.1':
     resolution: {integrity: sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==}
@@ -2432,11 +2455,6 @@ packages:
     resolution: {integrity: sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw==}
     engines: {node: '>=18'}
 
-  yaml@2.7.0:
-    resolution: {integrity: sha512-+hSoy/QHluxmC9kCIJyL/uyFmLmc+e5CFR5Wa+bpIhIj85LVb9ZH2nVnqrHoSvKogwODv0ClqZkmiSSaIH5LTA==}
-    engines: {node: '>= 14'}
-    hasBin: true
-
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -2846,6 +2864,10 @@ snapshots:
 
   '@poppinss/exception@1.2.2': {}
 
+  '@prisma/client@6.14.0(typescript@5.9.2)':
+    optionalDependencies:
+      typescript: 5.9.2
+
   '@rollup/plugin-alias@5.1.1(rollup@4.46.3)':
     optionalDependencies:
       rollup: 4.46.3
@@ -3072,7 +3094,7 @@ snapshots:
       '@typescript-eslint/types': 8.39.1
       eslint-visitor-keys: 4.2.1
 
-  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0))':
+  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
@@ -3087,7 +3109,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+      vitest: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3099,13 +3121,13 @@ snapshots:
       chai: 5.3.1
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.2.4(vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0))':
+  '@vitest/mocker@3.2.4(vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1))':
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -3136,7 +3158,7 @@ snapshots:
   '@webassemblyjs/ast@1.14.1':
     dependencies:
       '@webassemblyjs/helper-numbers': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
 
   '@webassemblyjs/floating-point-hex-parser@1.13.2': {}
 
@@ -3148,7 +3170,7 @@ snapshots:
       '@webassemblyjs/helper-api-error': 1.13.2
       '@xtuc/long': 4.2.2
 
-  '@webassemblyjs/helper-wasm-bytecode@1.14.1': {}
+  '@webassemblyjs/helper-wasm-bytecode@1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)': {}
 
   '@webassemblyjs/ieee754@1.14.1':
     dependencies:
@@ -3164,7 +3186,7 @@ snapshots:
     dependencies:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/helper-api-error': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
       '@webassemblyjs/ieee754': 1.14.1
       '@webassemblyjs/leb128': 1.14.1
       '@webassemblyjs/utf8': 1.14.1
@@ -4643,13 +4665,13 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-node@3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0):
+  vite-node@3.2.4(@types/node@24.3.0)(jiti@2.5.1):
     dependencies:
       cac: 6.7.14
       debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -4664,7 +4686,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0):
+  vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1):
     dependencies:
       esbuild: 0.25.9
       fdir: 6.5.0(picomatch@4.0.3)
@@ -4676,13 +4698,12 @@ snapshots:
       '@types/node': 24.3.0
       fsevents: 2.3.3
       jiti: 2.5.1
-      yaml: 2.7.0
 
-  vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0):
+  vitest@3.2.4(@types/node@24.3.0)(jiti@2.5.1):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0))
+      '@vitest/mocker': 3.2.4(vite@7.1.2(@types/node@24.3.0)(jiti@2.5.1))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -4700,8 +4721,8 @@ snapshots:
       tinyglobby: 0.2.14
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
-      vite-node: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)(yaml@2.7.0)
+      vite: 7.1.2(@types/node@24.3.0)(jiti@2.5.1)
+      vite-node: 3.2.4(@types/node@24.3.0)(jiti@2.5.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.3.0
@@ -4757,9 +4778,6 @@ snapshots:
   wsl-utils@0.1.0:
     dependencies:
       is-wsl: 3.1.0
-
-  yaml@2.7.0:
-    optional: true
 
   yocto-queue@0.1.0: {}
 
