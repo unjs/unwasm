@@ -34,7 +34,7 @@ export default _mod;
   `
     : /* js */ `
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
-const _data = base64ToUint8Array("${asset.source.toString("base64")}");
+const _data = base64ToUint8Array("${UNWASM_EXTERNAL_PREFIX}${asset.name}");
 const _mod = new WebAssembly.Module(_data);
 export default _mod;
   `;
@@ -60,7 +60,7 @@ import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 ${importsCode}
 
 function _instantiate(imports = _imports) {
-  const _data = base64ToUint8Array("${asset.source.toString("base64")}")
+  const _data = base64ToUint8Array("${UNWASM_EXTERNAL_PREFIX}${asset.name}")
   return WebAssembly.instantiate(_data, imports)  }
   `;
 }

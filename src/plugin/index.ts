@@ -5,6 +5,7 @@ import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
 import { createUnplugin } from "unplugin";
 import { parseWasm } from "../tools";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
+import { treeshake, filterExports } from "./runtime/treeshake";
 import { getPluginUtils } from "./runtime/utils";
 import {
   sha1,
@@ -139,8 +140,30 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       };
     },
     renderChunk(code: string, chunk: RenderedChunk) {
-      if (!opts.esmImport) {
-        return;
+      if (chunk.type === "chunk" && opts.treeshake) {
+        for (const [id, module] of Object.entries(chunk.modules)) {
+          if (!WASM_ID_RE.test(id)) {
+            continue;
+          }
+          // Find the asset and tree shake it.
+          let assetKey;
+          for (const [key, value] of Object.entries(assets)) {
+            if (value.id === id) {
+              assetKey = key;
+              break;
+            }
+          }
+          if (!assetKey) {
+            throw new Error("Could not find asset.");
+          }
+          const asset = assets[assetKey];
+          const buffer = treeshake(
+            asset.source,
+            filterExports(asset.exports, module.removedExports),
+            opts,
+          );
+          asset.source = buffer;
+        }
       }
 
       if (
@@ -160,10 +183,16 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
         if (!asset) {
           return;
         }
-        const nestedLevel =
-          chunk.fileName.split("/").filter(Boolean /* handle // */).length - 1;
-        const relativeId =
-          (nestedLevel ? "../".repeat(nestedLevel) : "./") + asset.name;
+        let relativeId;
+        if (opts.esmImport) {
+          const nestedLevel =
+            chunk.fileName.split("/").filter(Boolean /* handle // */).length -
+            1;
+          relativeId =
+            (nestedLevel ? "../".repeat(nestedLevel) : "./") + asset.name;
+        } else {
+          relativeId = asset.source.toString("base64");
+        }
         return {
           relativeId,
           asset,

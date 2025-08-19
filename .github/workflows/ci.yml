@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v5
       - run: npm i -g --force corepack
       - run: corepack enable
+      - run: sudo apt install -y binaryen
+        if: ${{ matrix.os == 'ubuntu-latest' }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
