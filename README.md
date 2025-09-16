@@ -96,13 +96,13 @@ npm install unwasm
 yarn add unwasm
 
 # pnpm
-pnpm install unwasm
+pnpm add unwasm
 
 # bun
 bun install unwasm
 
 # deno
-deno install unwasm
+deno install npm:unwasm
 ```
 
 <!-- /automd -->
