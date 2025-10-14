@@ -6,6 +6,7 @@ import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
 import { UnwasmPluginOptions, rollup as unwasmRollup } from "../src/plugin";
+import { execSync } from "node:child_process";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -75,6 +76,39 @@ describe("plugin:rollup", () => {
       }),
     );
   });
+
+  // const hasBin =
+  let wasmMetaDCEBinExists: boolean;
+  try {
+    execSync("wasm-metadce --version");
+    wasmMetaDCEBinExists = true;
+  } catch {
+    wasmMetaDCEBinExists = false;
+  }
+
+  it.skipIf(!wasmMetaDCEBinExists)("treeshake", async () => {
+    const { output } = await _rollupBuild(
+      "fixture/treeshake.mjs",
+      "rollup-inline",
+      {
+        treeshake: true,
+      },
+    );
+    const code = output[0].code;
+    // Check that the unused export 'functionTwo' is removed from the Wasm
+    // module.
+    const wasm = getBase64WasmModule(code);
+    expect(wasm).toBeTruthy();
+    const module = await WebAssembly.compile(Buffer.from(wasm, "base64"));
+    const exports = WebAssembly.Module.exports(module);
+    expect(exports.length).toEqual(1);
+    expect(exports[0].name).toEqual("functionOne");
+    // Ensure that it still runs after dce.
+    const mod = await evalModule(code, {
+      url: r("fixture/treeshake.mjs"),
+    });
+    expect(mod.test()).toBe("OK");
+  });
 });
 
 // --- Utils ---
@@ -114,4 +148,13 @@ export default {
   const res = await mf.dispatchFetch("http://localhost");
   await mf.dispose();
   return res;
+}
+
+function getBase64WasmModule(code: string) {
+  const start = code.indexOf('base64ToUint8Array("');
+  if (start === -1) {
+    return false;
+  }
+  const end = code.indexOf('")', start);
+  return code.slice(start + 20, end);
 }

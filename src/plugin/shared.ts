@@ -16,6 +16,18 @@ export interface UnwasmPluginOptions {
    * @default false
    */
   lazy?: boolean;
+
+  /**
+   * Enable treeshaking of Wasm files using Binaryen's wasm-metadce.
+   *
+   * @default false
+   */
+  treeshake?: boolean;
+
+  commands?: {
+    /** Path to wasm-metadce binary. Defaults to `wasm-metadce` from the system. */
+    wasmMetaDCE?: string;
+  };
 }
 
 export type WasmAsset = {
