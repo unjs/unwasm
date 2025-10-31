@@ -60,7 +60,7 @@
     "@prisma/client": "^6.15.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/node": "^24.3.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.0.6",
     "@webassemblyjs/wasm-parser": "^1.14.1",
     "assemblyscript": "^0.28.5",
     "automd": "^0.4.0",
@@ -76,7 +76,7 @@
     "typescript": "^5.9.2",
     "unbuild": "^3.6.1",
     "vite": "^7.1.4",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.6",
     "wabt": "^1.0.37"
   },
   "resolutions": {
