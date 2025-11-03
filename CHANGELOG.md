@@ -1,6 +1,41 @@
 # Changelog
 
 
+## v0.4.0
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.3.11...v0.4.0)
+
+### 🚀 Enhancements
+
+- Support direct ESM imports in wasm ([#55](https://github.com/unjs/unwasm/pull/55))
+
+### 💅 Refactors
+
+- Simplify plugin ([1d768a2](https://github.com/unjs/unwasm/commit/1d768a2))
+
+### 📦 Build
+
+- ⚠️  Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
+
+### 🏡 Chore
+
+- **release:** V0.3.11 ([36466b3](https://github.com/unjs/unwasm/commit/36466b3))
+- Update deps ([02c00fd](https://github.com/unjs/unwasm/commit/02c00fd))
+- Apply automated updates ([dcd60bf](https://github.com/unjs/unwasm/commit/dcd60bf))
+
+### ✅ Tests
+
+- Add tests for vite ([96b534a](https://github.com/unjs/unwasm/commit/96b534a))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Brendan Dahl <brendan.dahl@gmail.com>
+
 ## v0.3.11
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.10...v0.3.11)
