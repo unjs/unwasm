@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.4.1
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.4.0...v0.4.1)
+
+### 📦 Build
+
+- Update release script ([9487add](https://github.com/unjs/unwasm/commit/9487add))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.4.0
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.3.11...v0.4.0)
