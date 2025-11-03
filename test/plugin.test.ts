@@ -5,7 +5,7 @@ import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
-import { UnwasmPluginOptions, rollup as unwasmRollup } from "../src/plugin";
+import { UnwasmPluginOptions, unwasm } from "../src/plugin";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -86,7 +86,7 @@ async function _rollupBuild(
 ) {
   const build = await rollup({
     input: r(entry),
-    plugins: [rollupNodeResolve({}), unwasmRollup(pluginOpts)],
+    plugins: [rollupNodeResolve({}), unwasm(pluginOpts)],
   });
   return await build.write({
     format: "esm",

@@ -113,7 +113,7 @@ deno install unwasm
 
 ```js
 // rollup.config.js
-import { rollup as unwasm } from "unwasm/plugin";
+import { unwasm } from "unwasm/plugin";
 
 export default {
   plugins: [

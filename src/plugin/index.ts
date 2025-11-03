@@ -1,8 +1,7 @@
 import { promises as fs, existsSync } from "node:fs";
 import { basename } from "pathe";
 import MagicString from "magic-string";
-import type { RenderedChunk, Plugin as RollupPlugin } from "rollup";
-import { createUnplugin } from "unplugin";
+import type { RenderedChunk, Plugin } from "rollup";
 import { parseWasm } from "../tools";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
 import { getPluginUtils } from "./runtime/utils";
@@ -19,7 +18,7 @@ export type { UnwasmPluginOptions } from "./shared";
 
 const WASM_ID_RE = /\.wasm\??.*$/i;
 
-const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
+export function unwasm(opts: UnwasmPluginOptions): Plugin {
   const assets: Record<string, WasmAsset> = Object.create(null);
 
   type ParseCacheEntry = Pick<WasmAsset, "imports" | "exports">;
@@ -55,8 +54,9 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
 
   return {
     name: "unwasm",
-    rollup: {
-      async resolveId(id, importer) {
+    resolveId: {
+      order: "pre",
+      async handler(id, importer) {
         if (id === UMWASM_HELPERS_ID) {
           return id;
         }
@@ -77,17 +77,17 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
           }
         }
       },
-      generateBundle() {
-        if (opts.esmImport) {
-          for (const asset of Object.values(assets)) {
-            this.emitFile({
-              type: "asset",
-              source: asset.source,
-              fileName: asset.name,
-            });
-          }
+    },
+    generateBundle() {
+      if (opts.esmImport) {
+        for (const asset of Object.values(assets)) {
+          this.emitFile({
+            type: "asset",
+            source: asset.source,
+            fileName: asset.name,
+          });
         }
-      },
+      }
     },
     async load(id) {
       if (id === UMWASM_HELPERS_ID) {
@@ -189,12 +189,7 @@ const unplugin = createUnplugin<UnwasmPluginOptions>((opts) => {
       }
     },
   };
-});
+}
 
-export const rollup = unplugin.rollup as (
-  opts: UnwasmPluginOptions,
-) => RollupPlugin;
-
-export default {
-  rollup,
-};
+/** @deprecated use unwasm export */
+export const rollup = unwasm;
