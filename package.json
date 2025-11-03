@@ -24,7 +24,7 @@
     "lint": "eslint --cache . && prettier -c src test",
     "lint:fix": "eslint --cache . --fix && prettier -c src test -w",
     "prepack": "pnpm build",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
+    "release": "pnpm test && pnpm build && changelogen --release --publish",
     "test": "pnpm lint && pnpm test:types && vitest run --coverage",
     "test:types": "tsc --noEmit --skipLibCheck"
   },
