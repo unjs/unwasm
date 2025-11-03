@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.4.2
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.4.1...v0.4.2)
+
+### 🩹 Fixes
+
+- **plugin:** Use `pre` order for `load` and `transform` ([f868aca](https://github.com/unjs/unwasm/commit/f868aca))
+
+### 🏡 Chore
+
+- Update release script ([2ea9732](https://github.com/unjs/unwasm/commit/2ea9732))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.4.1
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.4.0...v0.4.1)
