@@ -89,54 +89,60 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
         }
       }
     },
-    async load(id) {
-      if (id === UMWASM_HELPERS_ID) {
-        return getPluginUtils();
-      }
+    load: {
+      order: "pre",
+      async handler(id) {
+        if (id === UMWASM_HELPERS_ID) {
+          return getPluginUtils();
+        }
 
-      if (!WASM_ID_RE.test(id)) {
-        return;
-      }
+        if (!WASM_ID_RE.test(id)) {
+          return;
+        }
 
-      const idPath = id.split("?")[0];
-      if (!existsSync(idPath)) {
-        return;
-      }
+        const idPath = id.split("?")[0];
+        if (!existsSync(idPath)) {
+          return;
+        }
 
-      this.addWatchFile(idPath);
+        this.addWatchFile(idPath);
 
-      const buff = await fs.readFile(idPath);
-      return buff.toString("binary");
+        const buff = await fs.readFile(idPath);
+        return buff.toString("binary");
+      },
     },
-    async transform(code, id) {
-      if (!WASM_ID_RE.test(id)) {
-        return;
-      }
+    transform: {
+      order: "pre",
+      async handler(code, id) {
+        if (!WASM_ID_RE.test(id)) {
+          return;
+        }
 
-      const buff = Buffer.from(code, "binary");
+        const buff = Buffer.from(code, "binary");
 
-      const isModule = id.endsWith("?module");
+        const isModule = id.endsWith("?module");
 
-      const name = `wasm/${basename(id.split("?")[0], ".wasm")}-${sha1(buff)}.wasm`;
+        const name = `wasm/${basename(id.split("?")[0], ".wasm")}-${sha1(buff)}.wasm`;
 
-      const parsed = isModule
-        ? { imports: [], exports: ["default"] }
-        : parse(name, buff);
+        const parsed = isModule
+          ? { imports: [], exports: ["default"] }
+          : parse(name, buff);
 
-      const asset = (assets[name] = <WasmAsset>{
-        name,
-        id,
-        source: buff,
-        imports: parsed.imports,
-        exports: parsed.exports,
-      });
+        const asset = (assets[name] = <WasmAsset>{
+          name,
+          id,
+          source: buff,
+          imports: parsed.imports,
+          exports: parsed.exports,
+        });
 
-      return {
-        code: isModule
-          ? await getWasmModuleBinding(asset, opts)
-          : await getWasmESMBinding(asset, opts),
-        map: { mappings: "" },
-      };
+        return {
+          code: isModule
+            ? await getWasmModuleBinding(asset, opts)
+            : await getWasmESMBinding(asset, opts),
+          map: { mappings: "" },
+        };
+      },
     },
     renderChunk(code: string, chunk: RenderedChunk) {
       if (!opts.esmImport) {
