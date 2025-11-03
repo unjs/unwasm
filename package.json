@@ -8,36 +8,17 @@
   "type": "module",
   "exports": {
     "./examples/*": "./examples/*",
-    "./plugin": {
-      "import": {
-        "types": "./dist/plugin.d.mts",
-        "default": "./dist/plugin.mjs"
-      },
-      "require": {
-        "types": "./dist/plugin.d.ts",
-        "default": "./dist/plugin.cjs"
-      }
-    },
-    "./tools": {
-      "import": {
-        "types": "./dist/tools.d.mts",
-        "default": "./dist/tools.mjs"
-      },
-      "require": {
-        "types": "./dist/tools.d.ts",
-        "default": "./dist/tools.cjs"
-      }
-    }
+    "./plugin": "./dist/plugin/index.mjs",
+    "./tools": "./dist/tools/index.mjs"
   },
   "files": [
     "dist",
-    "*.d.ts",
     "examples/*.wasm",
     "examples/package.json",
     "examples/*.mjs"
   ],
   "scripts": {
-    "build": "unbuild && pnpm build:examples",
+    "build": "obuild && pnpm build:examples",
     "build:examples": "node ./examples/build.mjs",
     "dev": "vitest dev",
     "lint": "eslint --cache . && prettier -c src test",
@@ -71,10 +52,10 @@
     "exsolve": "^1.0.7",
     "jiti": "^2.6.1",
     "miniflare": "^4.20251011.1",
+    "obuild": "^0.3.2",
     "prettier": "^3.6.2",
     "rollup": "^4.52.5",
     "typescript": "^5.9.3",
-    "unbuild": "^3.6.1",
     "vite": "^7.1.12",
     "vitest": "^4.0.6",
     "wabt": "^1.0.38"

@@ -1,12 +1,9 @@
-import { defineBuildConfig } from "unbuild";
+import { defineBuildConfig } from "obuild/config";
 
 export default defineBuildConfig({
-  declaration: true,
-  rollup: { emitCJS: true },
-  entries: ["src/plugin", "src/tools"],
-  externals: ["unwasm", "rollup"],
+  entries: ["src/plugin/index", "src/tools/index"],
   hooks: {
-    async "build:before"() {
+    async start() {
       const { build } = await import("esbuild");
       await build({
         entryPoints: ["lib/wasm-parser.in.mjs"],
