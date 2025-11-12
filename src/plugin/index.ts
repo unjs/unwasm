@@ -133,11 +133,14 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
           try {
             parsed = parse(name, buff);
           } catch (error) {
-            this.warn({
-              id,
-              cause: error as Error,
-              message: `Failed to parse WASM module. Falling back to Module mode.`,
-            });
+            if (!opts.silent) {
+              this.warn({
+                id,
+                cause: error as Error,
+                message:
+                  "Failed to parse the WebAssembly module; falling back to module mode.",
+              });
+            }
             isModule = true;
           }
         }
@@ -153,11 +156,15 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
         const _code = isModule
           ? await getWasmModuleBinding(asset, opts)
           : await getWasmESMBinding(asset, opts).catch((error) => {
-              this.warn({
-                id,
-                cause: error as Error,
-                message: `Failed to load WASM module. Falling back to Module mode.`,
-              });
+              if (!opts.silent) {
+                this.warn({
+                  id,
+                  cause: error as Error,
+                  message:
+                    "Failed to load the WebAssembly module; falling back to module mode: " +
+                    (error as Error).message,
+                });
+              }
               return getWasmModuleBinding(asset, opts);
             });
 
