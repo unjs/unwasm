@@ -35,28 +35,17 @@ export async function getWasmImports(
     const importNames = asset.imports[moduleName];
 
     // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
-    // TODO: Throw error if resolve failed in next major
     const importAlias =
       pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
     const resolved =
       importAlias && typeof importAlias === "string"
         ? importAlias
-        : resolveModulePath(moduleName, { from: asset.id, try: true });
+        : resolveModulePath(moduleName, { from: asset.id });
 
     const importName = "_imports_" + genSafeVariableName(moduleName);
-
-    // TODO: haandle pkgImport as object
-    if (resolved) {
-      imports.push(genImport(resolved, { name: "*", as: importName }));
-    }
-
+    imports.push(genImport(resolved, { name: "*", as: importName }));
     importsObject[moduleName] = Object.fromEntries(
-      importNames.map((name) => [
-        name,
-        resolved
-          ? `${importName}[${genString(name)}]`
-          : `() => { throw new Error(${genString(moduleName + "." + importName)} + " is not provided!")}`,
-      ]),
+      importNames.map((name) => [name, `${importName}[${genString(name)}]`]),
     );
   }
 
