@@ -16,6 +16,13 @@ export interface UnwasmPluginOptions {
    * @default false
    */
   lazy?: boolean;
+
+  /**
+   * Suppress all warnings from the plugin.
+   *
+   * @default false
+   */
+  silent?: boolean;
 }
 
 export type WasmAsset = {

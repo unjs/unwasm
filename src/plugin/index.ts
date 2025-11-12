@@ -120,13 +120,30 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
 
         const buff = Buffer.from(code, "binary");
 
-        const isModule = id.endsWith("?module");
+        let isModule = id.endsWith("?module");
 
         const name = `wasm/${basename(id.split("?")[0], ".wasm")}-${sha1(buff)}.wasm`;
 
-        const parsed = isModule
-          ? { imports: [], exports: ["default"] }
-          : parse(name, buff);
+        let parsed: ReturnType<typeof parse> = {
+          imports: {},
+          exports: ["default"],
+        };
+
+        if (!isModule) {
+          try {
+            parsed = parse(name, buff);
+          } catch (error) {
+            if (!opts.silent) {
+              this.warn({
+                id,
+                cause: error as Error,
+                message:
+                  "Failed to parse the WebAssembly module; falling back to module mode.",
+              });
+            }
+            isModule = true;
+          }
+        }
 
         const asset = (assets[name] = <WasmAsset>{
           name,
@@ -136,10 +153,23 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
           exports: parsed.exports,
         });
 
+        const _code = isModule
+          ? await getWasmModuleBinding(asset, opts)
+          : await getWasmESMBinding(asset, opts).catch((error) => {
+              if (!opts.silent) {
+                this.warn({
+                  id,
+                  cause: error as Error,
+                  message:
+                    "Failed to load the WebAssembly module; falling back to module mode: " +
+                    (error as Error).message,
+                });
+              }
+              return getWasmModuleBinding(asset, opts);
+            });
+
         return {
-          code: isModule
-            ? await getWasmModuleBinding(asset, opts)
-            : await getWasmESMBinding(asset, opts),
+          code: _code,
           map: { mappings: "" },
         };
       },
