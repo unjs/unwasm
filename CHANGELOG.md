@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.5.0
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.4.2...v0.5.0)
+
+### 🚀 Enhancements
+
+- ⚠️  Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
+
+### 🏡 Chore
+
+- Update deps ([6bf42fe](https://github.com/unjs/unwasm/commit/6bf42fe))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.4.2
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.4.1...v0.4.2)
