@@ -29,7 +29,7 @@
     "test:types": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "exsolve": "^1.0.7",
+    "exsolve": "^1.0.8",
     "knitwork": "^1.2.0",
     "magic-string": "^0.30.21",
     "mlly": "^1.8.0",
@@ -37,27 +37,27 @@
     "pkg-types": "^2.3.0"
   },
   "devDependencies": {
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^6.19.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@types/node": "^24.10.0",
-    "@vitest/coverage-v8": "^4.0.6",
+    "@types/node": "^24.10.1",
+    "@vitest/coverage-v8": "^4.0.8",
     "@webassemblyjs/wasm-parser": "^1.14.1",
     "assemblyscript": "^0.28.9",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "esbuild": "^0.25.12",
+    "esbuild": "^0.27.0",
     "eslint": "^9.39.1",
     "eslint-config-unjs": "^0.5.0",
     "exsolve": "^1.0.7",
     "jiti": "^2.6.1",
-    "miniflare": "^4.20251011.1",
-    "obuild": "^0.3.2",
+    "miniflare": "^4.20251109.0",
+    "obuild": "^0.4.1",
     "prettier": "^3.6.2",
-    "rollup": "^4.52.5",
+    "rollup": "^4.53.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12",
-    "vitest": "^4.0.6",
-    "wabt": "^1.0.38"
+    "vite": "^7.2.2",
+    "vitest": "^4.0.8",
+    "wabt": "^1.0.39"
   },
   "resolutions": {
     "@webassemblyjs/helper-wasm-bytecode": "1.14.1",
