@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g --force corepack
       - run: corepack enable
       - uses: actions/setup-node@v6
