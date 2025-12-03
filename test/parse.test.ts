@@ -43,28 +43,4 @@ describe("parseWasm", () => {
       }
     `);
   });
-
-  // Tests are only manual as takes ~5sec per wasm
-  describe.skip("dep: @prisma/client", { concurrent: true }, async () => {
-    const prismaRuntime = dirname(
-      resolveModulePath("@prisma/client/runtime/library", {
-        from: import.meta.url,
-      }),
-    );
-    const prismaWasmFiles = await readdir(prismaRuntime).then((r) =>
-      r.filter((f) => f.endsWith(".wasm")),
-    );
-
-    for (const file of prismaWasmFiles) {
-      it(
-        `should parse ${file}`,
-        { timeout: 60_000, concurrent: true },
-        async () => {
-          const source = await readFile(join(prismaRuntime, file));
-          const parsed = parseWasm(source);
-          console.log(parsed);
-        },
-      );
-    }
-  });
 });
