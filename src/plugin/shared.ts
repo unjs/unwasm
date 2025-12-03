@@ -40,3 +40,7 @@ export const UMWASM_HELPERS_ID = "\0unwasm:helpers";
 export function sha1(source: Buffer) {
   return createHash("sha1").update(source).digest("hex").slice(0, 16);
 }
+
+export function escapeRegExp(string: string): string {
+  return string.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`);
+}

@@ -6,6 +6,7 @@ import { parseWasm } from "../tools";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
 import { getPluginUtils } from "./runtime/utils";
 import {
+  escapeRegExp,
   sha1,
   UMWASM_HELPERS_ID,
   UNWASM_EXTERNAL_PREFIX,
@@ -56,6 +57,13 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
     name: "unwasm",
     resolveId: {
       order: "pre",
+      filter: {
+        id: [
+          new RegExp("^" + escapeRegExp(UMWASM_HELPERS_ID) + "$"),
+          new RegExp("^" + UNWASM_EXTERNAL_PREFIX),
+          WASM_ID_RE,
+        ],
+      },
       async handler(id, importer) {
         if (id === UMWASM_HELPERS_ID) {
           return id;
@@ -66,6 +74,7 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
             external: true,
           };
         }
+        // TODO: This seems not being hit
         if (WASM_ID_RE.test(id)) {
           const r = await this.resolve(id, importer, { skipSelf: true });
           if (r?.id && r.id !== id) {
@@ -91,6 +100,12 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
     },
     load: {
       order: "pre",
+      filter: {
+        id: [
+          new RegExp("^" + escapeRegExp(UMWASM_HELPERS_ID) + "$"),
+          WASM_ID_RE,
+        ],
+      },
       async handler(id) {
         if (id === UMWASM_HELPERS_ID) {
           return getPluginUtils();
@@ -113,11 +128,8 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
     },
     transform: {
       order: "pre",
+      filter: { id: WASM_ID_RE },
       async handler(code, id) {
-        if (!WASM_ID_RE.test(id)) {
-          return;
-        }
-
         const buff = Buffer.from(code, "binary");
 
         let isModule = id.endsWith("?module");
