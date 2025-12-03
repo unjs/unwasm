@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.5.2
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.5.1...v0.5.2)
+
+### 🩹 Fixes
+
+- **plugin:** Fix external id resolution ([10641ef](https://github.com/unjs/unwasm/commit/10641ef))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.5.1
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.5.0...v0.5.1)
