@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.5.1
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.5.0...v0.5.1)
+
+### 🔥 Performance
+
+- **plugin:** Use native hook filters ([865092e](https://github.com/unjs/unwasm/commit/865092e))
+
+### 🏡 Chore
+
+- Update deps ([e014fdd](https://github.com/unjs/unwasm/commit/e014fdd))
+- Remove prisma related tests ([f182144](https://github.com/unjs/unwasm/commit/f182144))
+- Remove unused imports ([31089be](https://github.com/unjs/unwasm/commit/31089be))
+- Update lockfile ([1d65ade](https://github.com/unjs/unwasm/commit/1d65ade))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.5.0
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.4.2...v0.5.0)
