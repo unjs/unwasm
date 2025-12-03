@@ -1,9 +1,7 @@
 import { fileURLToPath } from "node:url";
-import { readdir, readFile, rm } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import { it, describe, expect } from "vitest";
-import { resolveModulePath } from "exsolve";
 import { parseWasm } from "../src/tools";
-import { dirname, join } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
