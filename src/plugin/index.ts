@@ -1,4 +1,5 @@
 import { promises as fs, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { basename } from "pathe";
 import MagicString from "magic-string";
 import type { RenderedChunk, Plugin } from "rollup";
@@ -74,16 +75,27 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
             external: true,
           };
         }
-        // TODO: This seems not being hit
+        // Force .wasm imports as bundled (no-external)
         if (WASM_ID_RE.test(id)) {
-          const r = await this.resolve(id, importer, { skipSelf: true });
-          if (r?.id && r.id !== id) {
-            return {
-              id: r.id.startsWith("file://") ? r.id.slice(7) : r.id,
-              external: false,
-              moduleSideEffects: false,
-            };
+          const resolved = await this.resolve(id, importer);
+          if (!resolved?.id) {
+            return resolved;
           }
+          let resolvedId = resolved?.id;
+          if (resolvedId && resolvedId.startsWith("file://")) {
+            resolvedId = fileURLToPath(resolvedId);
+          }
+          return {
+            ...resolved,
+            id: resolvedId,
+            external: false,
+            moduleSideEffects: false,
+            resolvedBy: "unwasm",
+            meta: {
+              ...resolved.meta,
+              unwasm: { resolved },
+            },
+          };
         }
       },
     },
