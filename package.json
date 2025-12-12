@@ -38,23 +38,23 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.10.3",
     "@vitest/coverage-v8": "^4.0.15",
     "@webassemblyjs/wasm-parser": "^1.14.1",
     "assemblyscript": "^0.28.9",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "esbuild": "^0.27.0",
-    "eslint": "^9.39.1",
+    "esbuild": "^0.27.1",
+    "eslint": "^9.39.2",
     "eslint-config-unjs": "^0.5.0",
     "exsolve": "^1.0.8",
     "jiti": "^2.6.1",
-    "miniflare": "^4.20251128.0",
-    "obuild": "^0.4.4",
+    "miniflare": "^4.20251210.0",
+    "obuild": "^0.4.8",
     "prettier": "^3.7.4",
     "rollup": "^4.53.3",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6",
+    "vite": "^7.2.7",
     "vitest": "^4.0.15",
     "wabt": "^1.0.39"
   },
@@ -64,5 +64,5 @@
     "@webassemblyjs/leb128": "1.14.1",
     "@webassemblyjs/utf8": "1.14.1"
   },
-  "packageManager": "pnpm@10.24.0"
+  "packageManager": "pnpm@10.25.0"
 }
