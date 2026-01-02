@@ -38,24 +38,24 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@types/node": "^24.10.1",
-    "@vitest/coverage-v8": "^4.0.15",
+    "@types/node": "^24.10.4",
+    "@vitest/coverage-v8": "^4.0.16",
     "@webassemblyjs/wasm-parser": "^1.14.1",
     "assemblyscript": "^0.28.9",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "esbuild": "^0.27.0",
-    "eslint": "^9.39.1",
-    "eslint-config-unjs": "^0.5.0",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.39.2",
+    "eslint-config-unjs": "^0.6.2",
     "exsolve": "^1.0.8",
     "jiti": "^2.6.1",
-    "miniflare": "^4.20251128.0",
-    "obuild": "^0.4.4",
+    "miniflare": "^4.20251217.0",
+    "obuild": "^0.4.10",
     "prettier": "^3.7.4",
-    "rollup": "^4.53.3",
+    "rollup": "^4.54.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6",
-    "vitest": "^4.0.15",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16",
     "wabt": "^1.0.39"
   },
   "resolutions": {
@@ -64,5 +64,5 @@
     "@webassemblyjs/leb128": "1.14.1",
     "@webassemblyjs/utf8": "1.14.1"
   },
-  "packageManager": "pnpm@10.24.0"
+  "packageManager": "pnpm@10.27.0"
 }
