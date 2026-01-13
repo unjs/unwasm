@@ -18,7 +18,7 @@ import {
 
 export type { UnwasmPluginOptions } from "./shared";
 
-const WASM_ID_RE = /\.wasm\??.*$/i;
+const WASM_ID_RE = /\.wasm(?:\?.*)?$/i;
 
 export function unwasm(opts: UnwasmPluginOptions): Plugin {
   const assets: Record<string, WasmAsset> = Object.create(null);
