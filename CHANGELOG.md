@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.5.3
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.5.2...v0.5.3)
+
+### 🩹 Fixes
+
+- **plugin:** Narrow `.wasm` extension matcher ([#81](https://github.com/unjs/unwasm/pull/81))
+
+### 🏡 Chore
+
+- Update lockfile ([470ad96](https://github.com/unjs/unwasm/commit/470ad96))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.5.2
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.5.1...v0.5.2)
