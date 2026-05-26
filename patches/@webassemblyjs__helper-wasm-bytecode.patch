@@ -1,18 +1,35 @@
 diff --git a/lib/index.js b/lib/index.js
-index 7390d66de519bc3c9a8b0cadb6ff35176d54a32d..b0a829afd5f8c3c54c91b9639aaee16d02d698c8 100644
+index 7390d66de519bc3c9a8b0cadb6ff35176d54a32d..0000000000000000000000000000000000000000 100644
 --- a/lib/index.js
 +++ b/lib/index.js
-@@ -401,7 +401,35 @@ var symbolsByByte = {
+@@ -401,7 +401,52 @@ var symbolsByByte = {
    0xfe4b: createSymbolObject("atomic.rmw16_u.cmpxchg_u", "i32", 1),
    0xfe4c: createSymbolObject("atomic.rmw8_u.cmpxchg_u", "i64", 1),
    0xfe4d: createSymbolObject("atomic.rmw16_u.cmpxchg_u", "i64", 1),
 -  0xfe4e: createSymbolObject("atomic.rmw32_u.cmpxchg_u", "i64", 1)
 +  0xfe4e: createSymbolObject("atomic.rmw32_u.cmpxchg_u", "i64", 1),
 +
-+  // FC (misc prefix) — saturating trunc + bulk-mem
-+  0xfc07: createSymbolObject("trunc_sat_f64_u", "i64", 0), // i64.trunc_sat_f64_u
-+  0xfc03: createSymbolObject("trunc_sat_f64_u", "i32", 0), // i32.trunc_sat_f64_u
-+  0xfc06: createSymbolObject("trunc_sat_f64_s", "i64", 0), // i64.trunc_sat_f64_s
++  // Bulk memory instructions
++  0xfc08: createSymbol("memory.init", 2),
++  0xfc09: createSymbol("data.drop", 1),
++  0xfc0a: createSymbol("memory.copy", 2),
++  0xfc0b: createSymbol("memory.fill", 1),
++
++  // Non-trapping float-to-int conversions (0xfc00–0xfc07)
++  0xfc00: createSymbolObject("trunc_sat_f32_s", "i32", 0),
++  0xfc01: createSymbolObject("trunc_sat_f32_u", "i32", 0),
++  0xfc02: createSymbolObject("trunc_sat_f64_s", "i32", 0),
++  0xfc03: createSymbolObject("trunc_sat_f64_u", "i32", 0),
++  0xfc04: createSymbolObject("trunc_sat_f32_s", "i64", 0),
++  0xfc05: createSymbolObject("trunc_sat_f32_u", "i64", 0),
++  0xfc06: createSymbolObject("trunc_sat_f64_s", "i64", 0),
++  0xfc07: createSymbolObject("trunc_sat_f64_u", "i64", 0),
++
++  // Wide arithmetic proposal (0xfc13–0xfc16)
++  0xfc13: createSymbolObject("add128", "i64", 0),
++  0xfc14: createSymbolObject("sub128", "i64", 0),
++  0xfc15: createSymbolObject("mul_wide_s", "i64", 0),
++  0xfc16: createSymbolObject("mul_wide_u", "i64", 0),
 +
 +  // Core + Exception Handling (EH) proposal
 +  0x0:   createSymbolObject("unreachable", "void", 0),

@@ -12,7 +12,7 @@ overrides:
 
 patchedDependencies:
   '@webassemblyjs/helper-wasm-bytecode':
-    hash: 339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101
+    hash: 1f536d6e0ffd330fd4e93fa13b112099cb075736b33e1915a194b492ee3ff185
     path: patches/@webassemblyjs__helper-wasm-bytecode.patch
 
 importers:
@@ -3470,7 +3470,7 @@ snapshots:
   '@webassemblyjs/ast@1.14.1':
     dependencies:
       '@webassemblyjs/helper-numbers': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=1f536d6e0ffd330fd4e93fa13b112099cb075736b33e1915a194b492ee3ff185)
 
   '@webassemblyjs/floating-point-hex-parser@1.13.2': {}
 
@@ -3482,7 +3482,7 @@ snapshots:
       '@webassemblyjs/helper-api-error': 1.13.2
       '@xtuc/long': 4.2.2
 
-  '@webassemblyjs/helper-wasm-bytecode@1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)': {}
+  '@webassemblyjs/helper-wasm-bytecode@1.14.1(patch_hash=1f536d6e0ffd330fd4e93fa13b112099cb075736b33e1915a194b492ee3ff185)': {}
 
   '@webassemblyjs/ieee754@1.14.1':
     dependencies:
@@ -3498,7 +3498,7 @@ snapshots:
     dependencies:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/helper-api-error': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
+      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=1f536d6e0ffd330fd4e93fa13b112099cb075736b33e1915a194b492ee3ff185)
       '@webassemblyjs/ieee754': 1.14.1
       '@webassemblyjs/leb128': 1.14.1
       '@webassemblyjs/utf8': 1.14.1
