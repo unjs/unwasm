@@ -64,5 +64,5 @@
     "@webassemblyjs/leb128": "1.14.1",
     "@webassemblyjs/utf8": "1.14.1"
   },
-  "packageManager": "pnpm@10.28.0"
+  "packageManager": "pnpm@11.4.0"
 }
