@@ -53,7 +53,7 @@
     "obuild": "^0.4.14",
     "prettier": "^3.7.4",
     "rollup": "^4.55.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.17",
     "wabt": "^1.0.39"
