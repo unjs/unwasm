@@ -44,7 +44,7 @@
     "assemblyscript": "^0.28.9",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "esbuild": "^0.27.2",
+    "esbuild": "^0.28.0",
     "eslint": "^9.39.2",
     "eslint-config-unjs": "^0.6.2",
     "exsolve": "^1.0.8",
