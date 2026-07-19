@@ -4,17 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@webassemblyjs/helper-wasm-bytecode': 1.14.1
-  '@webassemblyjs/ieee754': 1.14.1
-  '@webassemblyjs/leb128': 1.14.1
-  '@webassemblyjs/utf8': 1.14.1
-
-patchedDependencies:
-  '@webassemblyjs/helper-wasm-bytecode':
-    hash: 339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101
-    path: patches/@webassemblyjs__helper-wasm-bytecode.patch
-
 importers:
 
   .:
@@ -47,9 +36,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.0.17
         version: 4.0.17(vitest@4.0.17(@types/node@25.0.8)(jiti@2.6.1))
-      '@webassemblyjs/wasm-parser':
-        specifier: ^1.14.1
-        version: 1.14.1
       assemblyscript:
         specifier: ^0.28.9
         version: 0.28.9
@@ -59,9 +45,6 @@ importers:
       changelogen:
         specifier: ^0.6.2
         version: 0.6.2(magicast@0.5.1)
-      esbuild:
-        specifier: ^0.27.2
-        version: 0.27.2
       eslint:
         specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
@@ -1353,39 +1336,6 @@ packages:
 
   '@vitest/utils@4.0.17':
     resolution: {integrity: sha512-RG6iy+IzQpa9SB8HAFHJ9Y+pTzI+h8553MrciN9eC6TFBErqrQaTas4vG+MVj8S4uKk8uTT2p0vgZPnTdxd96w==}
-
-  '@webassemblyjs/ast@1.14.1':
-    resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
-
-  '@webassemblyjs/floating-point-hex-parser@1.13.2':
-    resolution: {integrity: sha512-6oXyTOzbKxGH4steLbLNOu71Oj+C8Lg34n6CqRvqfS2O71BxY6ByfMDRhBytzknj9yGUPVJ1qIKhRlAwO1AovA==}
-
-  '@webassemblyjs/helper-api-error@1.13.2':
-    resolution: {integrity: sha512-U56GMYxy4ZQCbDZd6JuvvNV/WFildOjsaWD3Tzzvmw/mas3cXzRJPMjP83JqEsgSbyrmaGjBfDtV7KDXV9UzFQ==}
-
-  '@webassemblyjs/helper-numbers@1.13.2':
-    resolution: {integrity: sha512-FE8aCmS5Q6eQYcV3gI35O4J789wlQA+7JrqTTpJqn5emA4U2hvwJmvFRC0HODS+3Ye6WioDklgd6scJ3+PLnEA==}
-
-  '@webassemblyjs/helper-wasm-bytecode@1.14.1':
-    resolution: {integrity: sha512-qAvwav8dfXjy+4eIsCCBzJX41a+CqVW0c91R6dvDoOlXbtT2AlNuG6GCnXBYrdEHNKRKBmn02asjyw+q5zHfMg==}
-
-  '@webassemblyjs/ieee754@1.14.1':
-    resolution: {integrity: sha512-hZDDfS2/NYPw+/0eFSqFZQ+WGNlFERxj1C6ObV7FxGUrNkoVuTRl8A6+Tg9prfFxD2O84Jxx7rbZAggO9EAQDg==}
-
-  '@webassemblyjs/leb128@1.14.1':
-    resolution: {integrity: sha512-SxIMbt0XzSD/wmkbCdU0Efy4xSlKe0M7DJOoFimyAPBJ5BI6E1RaSQSloU7aKk8ZaCz3T/FFy3MEbAyyYLQI9A==}
-
-  '@webassemblyjs/utf8@1.14.1':
-    resolution: {integrity: sha512-ppmr21h5laouMyJRgAG26qHm/bueeSuiOBcDh9TiyO5+XfGlzi5AkaysAD4JkmrqHtf/tvc/GZmc+5O+qWhakA==}
-
-  '@webassemblyjs/wasm-parser@1.14.1':
-    resolution: {integrity: sha512-JLBl+KZ0R5qB7mCnud/yyX08jWFw5MsoalJ1pQ4EdFlgj9VdXKGuENGsiCIjegI1W7p91rUlcB/LB5yRJKNTcQ==}
-
-  '@xtuc/ieee754@1.2.0':
-    resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
-
-  '@xtuc/long@4.2.2':
-    resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3466,46 +3416,6 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 4.0.17
       tinyrainbow: 3.0.3
-
-  '@webassemblyjs/ast@1.14.1':
-    dependencies:
-      '@webassemblyjs/helper-numbers': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
-
-  '@webassemblyjs/floating-point-hex-parser@1.13.2': {}
-
-  '@webassemblyjs/helper-api-error@1.13.2': {}
-
-  '@webassemblyjs/helper-numbers@1.13.2':
-    dependencies:
-      '@webassemblyjs/floating-point-hex-parser': 1.13.2
-      '@webassemblyjs/helper-api-error': 1.13.2
-      '@xtuc/long': 4.2.2
-
-  '@webassemblyjs/helper-wasm-bytecode@1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)': {}
-
-  '@webassemblyjs/ieee754@1.14.1':
-    dependencies:
-      '@xtuc/ieee754': 1.2.0
-
-  '@webassemblyjs/leb128@1.14.1':
-    dependencies:
-      '@xtuc/long': 4.2.2
-
-  '@webassemblyjs/utf8@1.14.1': {}
-
-  '@webassemblyjs/wasm-parser@1.14.1':
-    dependencies:
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/helper-api-error': 1.13.2
-      '@webassemblyjs/helper-wasm-bytecode': 1.14.1(patch_hash=339774429611ed34bc80bc6bbe80b2e7a85c850a1f7612f4e8d36151bf486101)
-      '@webassemblyjs/ieee754': 1.14.1
-      '@webassemblyjs/leb128': 1.14.1
-      '@webassemblyjs/utf8': 1.14.1
-
-  '@xtuc/ieee754@1.2.0': {}
-
-  '@xtuc/long@4.2.2': {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
