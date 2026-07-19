@@ -7,6 +7,12 @@ export type ParsedWasmModule = {
 export type ModuleImport = {
   module: string;
   name: string;
+  /**
+   * What the module expects to be handed for this import. Only `Func` accepts a
+   * plain JavaScript value; the rest require the matching `WebAssembly.*`
+   * object, which is the distinction a caller most often needs.
+   */
+  type: ExternalKind;
   returnType?: string;
   params?: { id?: string; type: string }[];
 };
@@ -227,7 +233,13 @@ function readImportSection(reader: WasmReader, end: number, types: FuncType[]): 
     const module = reader.name();
     const name = reader.name();
     const kind = reader.u8();
-    const entry: ModuleImport = { module, name };
+    const type = EXTERNAL_KINDS[kind];
+    if (!type) {
+      // The descriptor that follows is kind specific, so an unknown kind leaves
+      // no way to find the next import: everything after would be misread.
+      throw new Error(`unsupported import kind: ${kind}`);
+    }
+    const entry: ModuleImport = { module, name, type };
     switch (kind) {
       case 0: {
         // func
@@ -260,6 +272,8 @@ function readImportSection(reader: WasmReader, end: number, types: FuncType[]): 
         break;
       }
       default: {
+        // Unreachable while every `ExternalKind` has a case above; guards
+        // against a new kind being named without its descriptor being skipped.
         throw new Error(`unsupported import kind: ${kind}`);
       }
     }
