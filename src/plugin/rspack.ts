@@ -39,6 +39,12 @@ const DEPENDENCY_LOADER = join(import.meta.dirname, "rspack-loader.cjs");
 /** Requests carrying inline loader syntax are left to rspack's own resolver. */
 const INLINE_LOADER_RE = /!/;
 
+/**
+ * JS output assets, the only ones that can carry an external specifier. Asset
+ * names may end with a query (`[name].js?[contenthash]`), so match beyond `$`.
+ */
+const JS_ASSET_RE = /\.[cm]?js(\?|$)/;
+
 type WasmInterface = Pick<WasmAsset, "imports" | "exports">;
 
 interface GeneratedBinding {
@@ -100,7 +106,9 @@ export class UnwasmRspackPlugin {
       // Keep `import("unwasm-external:<name>")` in the output untouched; the
       // specifier is rewritten to a relative asset path in `processAssets`.
       // `module-import` keeps dynamic imports dynamic instead of hoisting them.
-      new ExternalsPlugin("module-import", [new RegExp("^" + EXTERNAL_PREFIX)]).apply(compiler);
+      new ExternalsPlugin("module-import", [new RegExp("^" + escapeRegExp(EXTERNAL_PREFIX))]).apply(
+        compiler,
+      );
     }
 
     /** Rewrite the shared binding output to identifiers rspack can resolve. */
@@ -221,7 +229,12 @@ export class UnwasmRspackPlugin {
           // does not survive into the compilation's watch set.
           compilation.fileDependencies.add(resolved);
 
-          data.request = await generate(resolved, query === "module", (message) =>
+          // Matches `?module` anywhere in the query, so `?module&foo` and
+          // `?foo&module` behave the same as the bare `?module` the Rollup
+          // plugin looks for.
+          const isModuleRequest = query.split("&").includes("module");
+
+          data.request = await generate(resolved, isModuleRequest, (message) =>
             warn(compilation, opts, message),
           );
         });
@@ -229,11 +242,36 @@ export class UnwasmRspackPlugin {
         compilation.hooks.processAssets.tap(
           {
             name: PLUGIN_NAME,
-            stage: compiler.rspack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
+            // Ahead of `OPTIMIZE_SIZE` (minification) and `DEV_TOOLING` (source
+            // maps), so both observe the rewritten specifier. Rewriting after
+            // `DEV_TOOLING` leaves the already-emitted `.map` describing the
+            // longer `unwasm-external:` text, shifting every later column.
+            // All chunk assets exist by `OPTIMIZE`.
+            stage: compiler.rspack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
           },
           () => {
             for (const message of pendingWarnings.splice(0)) {
               warn(compilation, opts, message);
+            }
+
+            // Drop bindings whose module is no longer in the graph, e.g. after
+            // an import was removed in watch mode. They would otherwise be
+            // regenerated on every rebuild for the compiler's lifetime, and
+            // keep their binary in the watch set. Skipped on a failed build,
+            // where the graph is incomplete and would prune live entries.
+            if (compilation.errors.length === 0) {
+              const live = new Set<string>();
+              for (const module of compilation.modules) {
+                const resource = (module as { resource?: string }).resource;
+                if (resource && generated.has(resource)) {
+                  live.add(resource);
+                }
+              }
+              for (const virtualId of generated.keys()) {
+                if (!live.has(virtualId)) {
+                  generated.delete(virtualId);
+                }
+              }
             }
 
             if (!opts.esmImport) {
@@ -248,7 +286,7 @@ export class UnwasmRspackPlugin {
             // references; anything left over belongs to a stale build.
             const referenced = new Set<string>();
             for (const [fileName, source] of Object.entries(compilation.assets)) {
-              if (!fileName.endsWith(".js") && !fileName.endsWith(".mjs")) {
+              if (!JS_ASSET_RE.test(fileName)) {
                 continue;
               }
               const code = source.source().toString();
@@ -258,15 +296,26 @@ export class UnwasmRspackPlugin {
               // Output filenames are `/`-separated regardless of platform.
               const nestedLevel = fileName.split("/").filter(Boolean).length - 1;
               const prefix = nestedLevel > 0 ? "../".repeat(nestedLevel) : "./";
-              const rewritten = code.replaceAll(EXTERNAL_RE, (match, name: string) => {
+              // `ReplaceSource` carries the chunk's existing mappings through
+              // the edit, so the later `DEV_TOOLING` stage still emits a map
+              // that points at the original binding. A `RawSource` would
+              // discard them.
+              const rewritten = new sources.ReplaceSource(source);
+              let changed = false;
+              for (const match of code.matchAll(EXTERNAL_RE)) {
+                const name = match[1];
                 if (!byName.has(name)) {
                   warn(compilation, opts, `Failed to resolve WASM import: ${JSON.stringify(name)}`);
-                  return match;
+                  continue;
                 }
                 referenced.add(name);
-                return prefix + name;
-              });
-              compilation.updateAsset(fileName, new sources.RawSource(rewritten));
+                // End offsets are inclusive.
+                rewritten.replace(match.index, match.index + match[0].length - 1, prefix + name);
+                changed = true;
+              }
+              if (changed) {
+                compilation.updateAsset(fileName, rewritten);
+              }
             }
 
             for (const name of referenced) {

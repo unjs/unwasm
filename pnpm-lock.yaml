@@ -15,6 +15,9 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
     devDependencies:
+      '@jridgewell/trace-mapping':
+        specifier: ^0.3.31
+        version: 0.3.31
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.3
         version: 16.0.3(rollup@4.62.2)
