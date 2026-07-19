@@ -1,13 +1,17 @@
-import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { existsSync, readdirSync } from "node:fs";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
 import { rolldown } from "rolldown";
 import { build as viteBuild } from "vite";
+import { rspack } from "@rspack/core";
 import { UnwasmPluginOptions, unwasm } from "../src/plugin";
+import { unwasmRspack } from "../src/plugin/rspack";
+import { sha1 } from "../src/plugin/shared";
+import { originalPositionFor, sourceContentFor, TraceMap } from "@jridgewell/trace-mapping";
 import { dirname } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
@@ -18,6 +22,7 @@ const builds = [
   { builder: "rollup", buildFn: _rollupBuild },
   { builder: "rolldown", buildFn: _rolldownBuild },
   { builder: "vite", buildFn: _viteBuild },
+  { builder: "rspack", buildFn: _rspackBuild },
 ];
 
 for (const { builder, buildFn } of builds) {
@@ -74,12 +79,270 @@ for (const { builder, buildFn } of builds) {
       ).catch((error_) => error_);
       // Rolldown-based builders aggregate build errors into `errors`.
       const causes = [error, ...(error.errors || [])];
-      expect(causes.map((c) => c.code)).toContain("MISSING_EXPORT");
+      // Rollup-family builders tag this as `MISSING_EXPORT`; rspack reports an
+      // `ESModulesLinkingError` with no code, so match on either signal.
+      const reasons = causes.map((c) => `${c.code ?? ""} ${c.message ?? ""}`);
+      expect(reasons.some((r) => r.includes("MISSING_EXPORT") || r.includes("was not found"))).toBe(
+        true,
+      );
+      expect(reasons.some((r) => r.includes("badImportName"))).toBe(true);
     });
   });
 }
 
+// Behaviour specific to the rspack integration, kept out of the shared matrix.
+describe("plugin:rspack (specifics)", () => {
+  it("distinguishes ?module from a plain import of the same binary", async () => {
+    const { output } = await _rspackBuild("fixture/mixed-module-import.mjs", "rspack-mixed", {});
+    const mod = await evalModule(output[0].code, { url: r("fixture/mixed-module-import.mjs") });
+    expect(await mod.test()).toBe("OK");
+  });
+
+  it("leaves unresolvable imports to rspack's own diagnostics", async () => {
+    const error = await _rspackBuild("fixture/missing-wasm.mjs", "rspack-missing", {}).catch(
+      (error_) => error_,
+    );
+    expect(error.message).toContain("Module not found");
+    expect(error.message).toContain("does-not-exist.wasm");
+  });
+
+  // Regression guard: the plugin must not depend on `asyncChunks` being off.
+  // `[name]` is required because `modern-module` emits a separate runtime chunk.
+  it("supports code splitting with rspack's default async chunks", async () => {
+    const dir = r(".tmp/rspack-async");
+    const stats = await _rspack({
+      entry: r("fixture/dynamic-import.mjs"),
+      context: r("fixture"),
+      target: ["node", "es2022"],
+      output: {
+        path: dir,
+        filename: "[name].mjs",
+        chunkFilename: "[name].mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        clean: true,
+      },
+      plugins: [unwasmRspack({})],
+    });
+    expect(stats.toJson({ errors: true }).errors).toEqual([]);
+    const mod = await import(pathToFileURL(`${dir}/main.mjs`).href);
+    expect(await mod.test()).toBe("OK");
+  });
+
+  // The specifier rewrite shortens the line it sits on, so it has to run before
+  // the source map is generated. Rewriting afterwards leaves every mapping to
+  // the right of the import pointing at the wrong original column.
+  it("keeps source maps accurate across the esmImport rewrite", async () => {
+    const dir = r(".tmp/rspack-sourcemap");
+    const stats = await _rspack({
+      entry: r("fixture/static-import.mjs"),
+      context: r("fixture"),
+      devtool: "source-map",
+      target: ["web", "es2022"],
+      output: {
+        path: dir,
+        filename: "index.mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        asyncChunks: false,
+        clean: true,
+      },
+      plugins: [unwasmRspack({ esmImport: true })],
+    });
+    expect(stats.toJson({ errors: true }).errors).toEqual([]);
+
+    const code = await readFile(`${dir}/index.mjs`, "utf8");
+    const map = new TraceMap(JSON.parse(await readFile(`${dir}/index.mjs.map`, "utf8")));
+
+    // A token to the right of the rewritten specifier, on the same line.
+    const lines = code.split("\n");
+    const line = lines.findIndex((l) => l.includes('import("./wasm/'));
+    expect(line).toBeGreaterThan(-1);
+    const column = lines[line].indexOf(".then");
+    expect(column).toBeGreaterThan(-1);
+
+    const original = originalPositionFor(map, { line: line + 1, column });
+    expect(original.source).toContain(".unwasm.mjs");
+
+    // It must land on the same token in the generated binding, not 15 columns
+    // (`unwasm-external:` minus `./`) to its left.
+    const sourceText = sourceContentFor(map, original.source!)!;
+    expect(sourceText.split("\n")[original.line! - 1].slice(original.column!)).toMatch(/^\.then\b/);
+  });
+
+  // Bindings are cached for the compiler's lifetime, so one whose import was
+  // removed has to be dropped from the graph — otherwise it keeps its binary in
+  // the watch set and gets regenerated on every subsequent rebuild.
+  it("stops tracking a binding once its import is removed", async () => {
+    const dir = r(".tmp/rspack-prune");
+    const src = r(".tmp/rspack-prune-src");
+    await mkdir(src, { recursive: true });
+    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), `${src}/a.wasm`);
+    await writeFile(
+      `${src}/entry.mjs`,
+      `import { sum } from "./a.wasm";\nexport const test = () => sum(1, 2);\n`,
+    );
+
+    // Watch mode, because that is where the binding cache the fix prunes is
+    // reused: a plain second `run()` serves the entry from memory and never
+    // sees the edit.
+    const compiler = _rspack.compiler({
+      entry: `${src}/entry.mjs`,
+      context: src,
+      target: ["node", "es2022"],
+      output: {
+        path: dir,
+        filename: "[name].mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        asyncChunks: false,
+        clean: true,
+      },
+      plugins: [unwasmRspack({ esmImport: true })],
+    });
+
+    const wasmAssets = (stats: any) =>
+      stats
+        .toJson({ assets: true })
+        .assets.map((a: any) => a.name)
+        .filter((n: string) => n.endsWith(".wasm"));
+
+    // Driven by observed state rather than callback count, since watch mode may
+    // emit extra rebuilds. `fileDependencies` is seeded when a compilation
+    // starts, so the binary only leaves the watch set on the rebuild *after*
+    // the pruning pass runs — hence the third phase.
+    let initial: { wasm: string[]; watched: string[] } | undefined;
+    let final: { wasm: string[]; watched: string[] } | undefined;
+    await new Promise<void>((resolve, reject) => {
+      let phase: "importing" | "dropping" | "settling" = "importing";
+      const timer = setTimeout(
+        () => watching.close(() => reject(new Error("watch timed out"))),
+        20_000,
+      );
+      const touch = (body: string) => setTimeout(() => writeFile(`${src}/entry.mjs`, body), 250);
+      const watching = compiler.watch({ poll: 100 }, (error, stats: any) => {
+        if (error) {
+          clearTimeout(timer);
+          watching.close(() => reject(error));
+          return;
+        }
+        const round = {
+          wasm: wasmAssets(stats),
+          watched: [...stats.compilation.fileDependencies] as string[],
+        };
+        if (phase === "importing") {
+          if (round.wasm.length === 0) {
+            return; // binding not built yet
+          }
+          initial = round;
+          phase = "dropping";
+          touch(`export const test = () => 3;\n`);
+        } else if (phase === "dropping") {
+          if (round.wasm.length > 0) {
+            return; // edit not picked up yet
+          }
+          phase = "settling";
+          touch(`export const test = () => 4;\n`);
+        } else {
+          final = round;
+          clearTimeout(timer);
+          watching.close(() => resolve());
+        }
+      });
+    });
+
+    expect(initial!.wasm).toHaveLength(1);
+    expect(initial!.watched).toContain(`${src}/a.wasm`);
+    // Import gone: no longer emitted, and dropped from the watch set.
+    expect(final!.wasm).toEqual([]);
+    expect(final!.watched).not.toContain(`${src}/a.wasm`);
+  }, 30_000);
+
+  it("rebuilds and re-emits when a watched .wasm changes", async () => {
+    const dir = r(".tmp/rspack-watch");
+    const src = r(".tmp/rspack-watch-src");
+    // Derived rather than hard-coded, so a fixture bump does not read as a
+    // plugin failure.
+    const before = `live-${sha1(await readFile(r("node_modules/@fixture/wasm/sum.wasm")))}.wasm`;
+    const after = `live-${sha1(await readFile(r("node_modules/@fixture/wasm/rand.wasm")))}.wasm`;
+    await mkdir(src, { recursive: true });
+    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), `${src}/live.wasm`);
+    await writeFile(
+      `${src}/entry.mjs`,
+      `import { sum } from "./live.wasm";\nexport function test() { return sum(1, 2); }\n`,
+    );
+
+    const compiler = _rspack.compiler({
+      entry: `${src}/entry.mjs`,
+      context: src,
+      target: ["node", "es2022"],
+      output: {
+        path: dir,
+        filename: "[name].mjs",
+        chunkFilename: "[name].mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        clean: true,
+      },
+      plugins: [unwasmRspack({ esmImport: true })],
+    });
+
+    const emitted: string[][] = [];
+    await new Promise<void>((resolve, reject) => {
+      let swapped = false;
+      const timer = setTimeout(
+        () => watching.close(() => reject(new Error("watch timed out"))),
+        20_000,
+      );
+      const watching = compiler.watch({ poll: 100 }, (error) => {
+        // Surface the real failure instead of letting it time out below.
+        if (error) {
+          clearTimeout(timer);
+          watching.close(() => reject(error));
+          return;
+        }
+        emitted.push(existsSync(`${dir}/wasm`) ? readdirSync(`${dir}/wasm`).sort() : []);
+        if (!swapped) {
+          swapped = true;
+          // `sum.wasm` -> `rand.wasm`: different content, so a different hash.
+          setTimeout(
+            () => copyFile(r("node_modules/@fixture/wasm/rand.wasm"), `${src}/live.wasm`),
+            250,
+          );
+        } else if (emitted.at(-1)?.[0] === after) {
+          clearTimeout(timer);
+          watching.close(() => resolve());
+        }
+      });
+    });
+
+    // The rebuilt output references only the new binary; the stale one is gone.
+    expect(emitted[0]).toEqual([before]);
+    expect(emitted.at(-1)).toEqual([after]);
+    const code = await readFile(`${dir}/main.mjs`, "utf8");
+    expect(code).toContain(`wasm/${after}`);
+    expect(code).not.toContain(before);
+  }, 30_000);
+});
+
 // --- Utils ---
+
+/** Promisified single-shot rspack build with the shared defaults. */
+function _rspack(config: any) {
+  return new Promise<any>((resolve, reject) =>
+    rspack(_rspackConfig(config), (error, stats) => (error ? reject(error) : resolve(stats))),
+  );
+}
+_rspack.compiler = (config: any) => rspack(_rspackConfig(config));
+
+function _rspackConfig(config: any) {
+  return {
+    mode: "development",
+    devtool: false,
+    optimization: { minimize: false, splitChunks: false },
+    ...config,
+  };
+}
 
 async function _rollupBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
   const build = await rollup({
@@ -128,6 +391,59 @@ async function _viteBuild(entry: string, name: string, pluginOpts: UnwasmPluginO
     },
   });
   return (build as any)[0];
+}
+
+async function _rspackBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
+  const stats = await new Promise<any>((resolve, reject) => {
+    rspack(
+      {
+        entry: r(entry),
+        mode: "development",
+        devtool: false,
+        target: ["web", "es2022"],
+        context: dirname(r(entry)),
+        output: {
+          path: r(`.tmp/${name}`),
+          filename: "index.mjs",
+          chunkFilename: "[name].mjs",
+          chunkFormat: "module",
+          // `modern-module` emits runtime-free ESM, closest to the other builders.
+          library: { type: "modern-module" },
+          // Single initial chunk, for two reasons: the constant `filename` above
+          // would otherwise collide with `modern-module`'s separate runtime
+          // chunk, and rspack's async chunk loader uses a computed `import()`
+          // that Miniflare's static module scan cannot follow. Async chunks are
+          // covered separately in the rspack-specific tests below.
+          asyncChunks: false,
+          clean: true,
+        },
+        optimization: { minimize: false, splitChunks: false },
+        plugins: [unwasmRspack(pluginOpts)],
+      },
+      (error, stats_) => (error ? reject(error) : resolve(stats_)),
+    );
+  });
+
+  const { errors, assets } = stats.toJson({ errors: true, assets: true });
+  if (errors?.length) {
+    // Mirror rolldown's aggregated shape so the shared assertions apply.
+    throw Object.assign(new Error(errors[0].message), { errors, code: errors[0].code });
+  }
+
+  // Entry chunk first, matching the other builders' output ordering.
+  const names: string[] = assets
+    .map((a: any) => a.name)
+    .filter((n: string) => !n.endsWith(".wasm"))
+    .sort((a: string, b: string) => Number(b === "index.mjs") - Number(a === "index.mjs"));
+
+  return {
+    output: await Promise.all(
+      names.map(async (fileName) => ({
+        fileName,
+        code: await readFile(r(`.tmp/${name}/${fileName}`), "utf8"),
+      })),
+    ),
+  };
 }
 
 async function _evalCloudflare(name: string) {
