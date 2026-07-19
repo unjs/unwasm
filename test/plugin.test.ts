@@ -38,7 +38,7 @@ for (const { builder, buildFn } of builds) {
       });
 
       // Chunk order differs per builder; find the chunk referencing the emitted wasm.
-      const esmImport = output
+      const esmImport = (output as any[])
         .map((o) => ("code" in o ? o.code.match(/["'](\.\/wasm\/.+wasm)["']/)?.[1] : undefined))
         .find(Boolean);
       expect(esmImport).match(/\.\/wasm\/\w+-[\da-f]+\.wasm/);
