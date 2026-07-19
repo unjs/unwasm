@@ -1,2 +1,0 @@
-patchedDependencies:
-  '@webassemblyjs/helper-wasm-bytecode': patches/@webassemblyjs__helper-wasm-bytecode.patch

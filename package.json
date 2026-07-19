@@ -40,11 +40,9 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/node": "^25.0.8",
     "@vitest/coverage-v8": "^4.0.17",
-    "@webassemblyjs/wasm-parser": "^1.14.1",
     "assemblyscript": "^0.28.9",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-unjs": "^0.6.2",
     "exsolve": "^1.0.8",
@@ -57,12 +55,6 @@
     "vite": "^7.3.1",
     "vitest": "^4.0.17",
     "wabt": "^1.0.39"
-  },
-  "resolutions": {
-    "@webassemblyjs/helper-wasm-bytecode": "1.14.1",
-    "@webassemblyjs/ieee754": "1.14.1",
-    "@webassemblyjs/leb128": "1.14.1",
-    "@webassemblyjs/utf8": "1.14.1"
   },
   "packageManager": "pnpm@10.28.0"
 }

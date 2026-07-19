@@ -137,7 +137,7 @@ unwasm provides useful build tools to operate on `.wasm` modules directly.
 
 ### `parseWasm`
 
-Parses `wasm` binary format with useful information using [webassemblyjs/wasm-parser](https://github.com/xtuc/webassemblyjs/tree/master/packages/wasm-parser).
+Parses the `wasm` binary format to extract a module's imports and exports. It is a small, dependency-free reader that only decodes the sections describing the module interface and skips over the rest.
 
 ```js
 import { readFile } from "node:fs/promises";
