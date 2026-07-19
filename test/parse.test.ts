@@ -322,9 +322,58 @@ describe("parseWasm", () => {
     expect(imports.map((i) => `${i.module}.${i.name}`)).toEqual(
       WebAssembly.Module.imports(module).map((i) => `${i.module}.${i.name}`),
     );
-    expect(exports.map((e) => e.name)).toEqual(
-      WebAssembly.Module.exports(module).map((e) => e.name),
+    // Compared by kind as well, so the `ExternalKind` mapping is checked
+    // against the engine rather than against our own expectations.
+    expect(exports.map((e) => `${e.name}:${e.type.toLowerCase()}`)).toEqual(
+      WebAssembly.Module.exports(module).map(
+        (e) => `${e.name}:${e.kind === "function" ? "func" : e.kind}`,
+      ),
     );
+  });
+
+  it("tolerates a malformed name section", () => {
+    // Custom sections carry no semantics, so a broken `name` section must not
+    // invalidate a module the engine accepts. The export falls back to its
+    // numeric id rather than the parse failing.
+    const bytes = wasmBytes(
+      section(1, [0x01, 0x60, 0x00, 0x00]),
+      section(3, [0x01, 0x00]),
+      section(7, [0x01, ...wasmName("realExport"), 0x00, 0x00]),
+      section(10, [0x01, 0x02, 0x00, 0x0b]),
+      // Subsection 1 declares 0x7f bytes, far past the section end.
+      section(0, [...wasmName("name"), 0x01, 0x7f, 0x01, 0x00]),
+    );
+
+    expect(() => new WebAssembly.Module(bytes)).not.toThrow();
+    expect(parseWasm(bytes).modules[0].exports).toEqual([
+      { name: "realExport", id: 0, type: "Func" },
+    ]);
+  });
+
+  it("tolerates a custom section with an unreadable name", () => {
+    const bytes = wasmBytes(
+      section(1, [0x01, 0x60, 0x00, 0x00]),
+      section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x00, 0x00]),
+      // Declares a 0x7f byte name inside a 2 byte section.
+      section(0, [0x7f, 0x00]),
+    );
+
+    expect(parseWasm(bytes).modules[0].imports).toMatchObject([
+      { module: "env", name: "fn" },
+    ]);
+  });
+
+  it("reports unknown value types without failing", () => {
+    // An unrecognised single byte type is only metadata, so it is passed
+    // through rather than rejected.
+    const bytes = wasmBytes(
+      section(1, [0x01, 0x60, 0x01, 0x5b, 0x00]),
+      section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x00, 0x00]),
+    );
+
+    expect(parseWasm(bytes).modules[0].imports[0].params).toEqual([
+      { type: "unknown(0x5b)" },
+    ]);
   });
 
   describe("proposals", () => {
@@ -474,26 +523,30 @@ describe("parseWasm", () => {
     });
 
     it("rejects a vector count that overruns its section", () => {
-      // The section length is authoritative; a lying count must not be
-      // allowed to read entries out of the following section.
-      const bytes = wasmBytes(
-        section(7, [0x05, ...wasmName("only"), 0x00, 0x00]),
-        section(0, [...wasmName("padding"), 0x01, 0x02, 0x03]),
+      // The section length is authoritative; a lying count must not read
+      // entries out of the following section. The bytes after this export
+      // section decode as a syntactically valid second entry (name "", kind 4,
+      // index 3), so only the length check can reject it.
+      const bytes = Buffer.from([
+        ...WASM_HEADER,
+        0x07,
+        0x05,
+        0x02,
+        0x01,
+        0x61,
+        0x00,
+        0x00, // export section, count lies
+        0x00,
+        0x04,
+        0x03,
+        0x61,
+        0x62,
+        0x63, // custom section "abc"
+      ]);
+
+      expect(() => parseWasm(bytes)).toThrow(
+        /section contents overrun the section length/,
       );
-
-      expect(() => parseWasm(bytes)).toThrow();
-    });
-
-    it("rejects a name subsection that overruns the name section", () => {
-      const bytes = wasmBytes(
-        section(1, [0x01, 0x60, 0x00, 0x00]),
-        section(3, [0x01, 0x00]),
-        section(7, [0x01, ...wasmName("f"), 0x00, 0x00]),
-        section(0, [...wasmName("name"), 0x01, 0x7f, 0x01, 0x00]),
-        section(0, [...wasmName("after"), 0xde, 0xad]),
-      );
-
-      expect(() => parseWasm(bytes)).toThrow(/name subsection overruns/);
     });
 
     it("preserves a leading U+FEFF in names", () => {
@@ -511,9 +564,25 @@ describe("parseWasm", () => {
     });
 
     it("rejects an overlong LEB128 integer", () => {
+      // Six continuation bytes: more than a u32 can occupy.
       const bytes = wasmBytes([0x07, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]);
 
       expect(() => parseWasm(bytes)).toThrow(/varuint32 is too large/);
+    });
+
+    it("rejects a LEB128 integer that exceeds a u32", () => {
+      // Five bytes, so within the length bound, but decodes to 2^32.
+      const bytes = wasmBytes([0x07, 0x80, 0x80, 0x80, 0x80, 0x10]);
+
+      expect(() => parseWasm(bytes)).toThrow(/varuint32 is too large/);
+    });
+
+    it("rejects an import kind it cannot identify", () => {
+      const bytes = wasmBytes(
+        section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x09]),
+      );
+
+      expect(() => parseWasm(bytes)).toThrow(/unsupported import kind: 9/);
     });
 
     it("includes the module name and preserves the cause", () => {

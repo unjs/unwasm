@@ -184,9 +184,18 @@ function readSections(reader: WasmReader): Section[] {
     }
     const section: Section = { id, start, end };
     if (id === SECTION_CUSTOM) {
-      // The custom section's own name is part of its payload.
-      section.name = reader.name();
-      section.start = reader.pos;
+      // The custom section's own name is part of its payload. A malformed one
+      // leaves the section unidentified rather than failing the parse: custom
+      // sections carry no semantics and must not invalidate the module.
+      try {
+        const name = reader.name();
+        if (reader.pos <= end) {
+          section.name = name;
+          section.start = reader.pos;
+        }
+      } catch {
+        // Unidentified, and therefore ignored below.
+      }
     }
     sections.push(section);
     reader.pos = end;
@@ -292,26 +301,34 @@ function readExportSection(reader: WasmReader, end: number) {
 /**
  * Function names from the `name` custom section, when the binary was not
  * stripped. Used to give exported functions a symbolic id.
+ *
+ * Best effort, unlike the interface sections: this is a custom section, so a
+ * malformed one must not invalidate a module the engine would accept. Names
+ * that cannot be read simply leave their exports with a numeric id.
  */
 function readFunctionNames(reader: WasmReader, end: number) {
   const names = new Map<number, string>();
-  while (reader.pos < end) {
-    const id = reader.u8();
-    const size = reader.varuint();
-    const subsectionEnd = reader.pos + size;
-    if (subsectionEnd > end) {
-      throw new Error("name subsection overruns the name section");
-    }
-    if (id === 1) {
-      // function names
-      const length = reader.varuint();
-      for (let i = 0; i < length; i++) {
-        const index = reader.varuint();
-        names.set(index, reader.name());
-        reader.assertWithin(subsectionEnd);
+  try {
+    while (reader.pos < end) {
+      const id = reader.u8();
+      const size = reader.varuint();
+      const subsectionEnd = reader.pos + size;
+      if (subsectionEnd > end) {
+        throw new Error("name subsection overruns the name section");
       }
+      if (id === 1) {
+        // function names
+        const length = reader.varuint();
+        for (let i = 0; i < length; i++) {
+          const index = reader.varuint();
+          names.set(index, reader.name());
+          reader.assertWithin(subsectionEnd);
+        }
+      }
+      reader.pos = subsectionEnd;
     }
-    reader.pos = subsectionEnd;
+  } catch {
+    // Keep whatever was read before the section stopped making sense.
   }
   return names;
 }
