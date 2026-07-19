@@ -200,10 +200,12 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
         return;
       }
 
-      if (!(
-        chunk.moduleIds.some((id) => WASM_ID_RE.test(id)) ||
-        chunk.imports.some((id) => WASM_ID_RE.test(id))
-      )) {
+      if (
+        !(
+          chunk.moduleIds.some((id) => WASM_ID_RE.test(id)) ||
+          chunk.imports.some((id) => WASM_ID_RE.test(id))
+        )
+      ) {
         return;
       }
       const s = new MagicString(code);
