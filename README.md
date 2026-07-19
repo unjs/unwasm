@@ -10,36 +10,43 @@
 
 Universal [WebAssembly](https://webassembly.org/) tools for JavaScript.
 
+unwasm lets you `import` a `.wasm` file the same way you import any other module. It reads the module at build time, works out what it imports and exports, and generates the right bindings for your bundler.
+
+```js
+import { sum } from "sum.wasm";
+```
+
 ## Goal
 
-This project aims to make a common and future-proof solution for WebAssembly modules support suitable for various JavaScript runtimes, frameworks, and build Tools following [WebAssembly/ES Module Integration](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) proposal from WebAssembly Community Group as much as possible while also trying to keep compatibility with current ecosystem libraries.
+unwasm aims to be a common, future-proof way to support WebAssembly modules across JavaScript runtimes, frameworks, and build tools. It follows the WebAssembly Community Group's [ES Module Integration](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) proposal as closely as possible, while staying compatible with today's ecosystem libraries.
 
 ## Bindings API
 
-When importing a `.wasm` module, unwasm resolves, reads, and then parses the module during the build process to get the information about imports and exports and even tries to [automatically resolve imports](#auto-imports) and generate appropriate code bindings for the bundler.
+When you import a `.wasm` module, unwasm resolves, reads, and parses it during the build to discover its imports and exports. It also tries to [resolve imports automatically](#auto-imports) and emits bindings tailored to your bundler.
 
-If the target environment supports [top level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and also the wasm module requires no imports object (or they are auto resolvable), unwasm generates bindings to allow importing wasm module like any other ESM import.
+The shape of those bindings depends on your target environment:
 
-If the target environment lacks support for top-level `await` or the wasm module requires an imports object or `lazy` plugin option is set to `true`, unwasm will export a wrapped [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) object which can be called as a function to evaluate the module with custom imports object lazily. This way we still have a simple syntax as close as possible to ESM modules and also we can lazily initialize modules.
+- **Static bindings** — if the environment supports [top-level `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) and the module needs no imports object (or unwasm can resolve one for you), the `.wasm` file behaves like a regular ESM import.
+- **Lazy bindings** — if top-level `await` is unavailable, the module needs an imports object, or you set the `lazy` plugin option, unwasm exports a [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) that you call as a function to instantiate the module with your own imports. The syntax stays close to ESM, and initialization happens only when you need it.
 
 **Example:** Using static import
 
 ```js
-import { sum } from "unwasm/examples/sum.wasm";
+import { sum } from "sum.wasm";
 ```
 
 **Example:** Using dynamic import
 
 ```js
-const { sum } = await import("unwasm/examples/sum.wasm");
+const { sum } = await import("sum.wasm");
 ```
 
-If your WebAssembly module requires an import object (unwasm can [automatically infer them](#auto-imports)), the usage syntax would be slightly different as we need to initiate the module with an import object first.
+If your module requires an imports object (which unwasm can often [infer for you](#auto-imports)), the syntax changes slightly: you initialize the module with that object first.
 
 **Example:** Using dynamic import with imports object
 
 ```js
-const { rand } = await import("unwasm/examples/rand.wasm").then((r) =>
+const { rand } = await import("rand.wasm").then((r) =>
   r.default({
     env: {
       seed: () => () => Math.random() * Date.now(),
@@ -51,7 +58,7 @@ const { rand } = await import("unwasm/examples/rand.wasm").then((r) =>
 **Example:** Using static import with imports object
 
 ```js
-import initRand, { rand } from "unwasm/examples/rand.wasm";
+import initRand, { rand } from "rand.wasm";
 
 await initRand({
   env: {
@@ -61,51 +68,32 @@ await initRand({
 ```
 
 > [!NOTE]
-> When using **static import syntax**, and before initializing the module, the named exports will be wrapped into a function by proxy that waits for the module initialization and if called before init, will immediately try to call init without imports and return a Promise that calls a function after init.
+> With **static import syntax**, named exports are proxied until the module is initialized. If you call one of them before init, the proxy runs init without imports and returns a Promise that resolves with the call's result.
 
 ### Module compatibility
 
-There are situations where libraries require a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) instance to initialize [`WebAssembly.Instance`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Instance/Instance) themselves. In order to maximize compatibility, unwasm allows a specific import suffix `?module` to import `.wasm` files as a Module directly.
+Some libraries want a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) so they can create the [`WebAssembly.Instance`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Instance/Instance) themselves. For those cases, add the `?module` suffix to import a `.wasm` file as a Module directly.
 
 ```js
-import _sumMod from "unwasm/examples/sum.wasm?module";
+import _sumMod from "sum.wasm?module";
 const { sum } = await WebAssembly.instantiate(_sumMod).then((i) => i.exports);
 ```
 
 > [!NOTE]
-> Open [an issue](https://github.com/unjs/unwasm/issues/new/choose) to us! We would love to help those libraries to migrate!
+> Run into a library that needs this? [Open an issue](https://github.com/unjs/unwasm/issues/new/choose) — we would love to help it migrate!
 
 ## Integration
 
-Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently, the only method is using a rollup plugin. In the future, more usage methods will be introduced.
+unwasm transforms `.wasm` imports into compatible bindings at build time. Today that happens through a Rollup plugin; more integrations are planned.
 
 ### Install
 
-First, install the [`unwasm`](https://www.npmjs.com/package/unwasm) npm package.
-
-<!-- automd:pm-install -->
+Install the [`unwasm`](https://www.npmjs.com/package/unwasm) npm package:
 
 ```sh
-# ✨ Auto-detect
+# ✨ Auto-detect package manager
 npx nypm install unwasm
-
-# npm
-npm install unwasm
-
-# yarn
-yarn add unwasm
-
-# pnpm
-pnpm add unwasm
-
-# bun
-bun install unwasm
-
-# deno
-deno install npm:unwasm
 ```
-
-<!-- /automd -->
 
 ### Builder Plugins
 
@@ -122,18 +110,16 @@ export default {
 
 ### Plugin Options
 
-- `esmImport`: Direct import the wasm file instead of bundling, required in Cloudflare Workers and works with environments that allow natively importing a `.wasm` module (default is `false`)
-- `lazy`: Import `.wasm` files using a lazily evaluated proxy for compatibility with runtimes without top-level await support (default is `false`)
+- `esmImport` (default: `false`): Import the `.wasm` file directly instead of bundling it. Required on Cloudflare Workers, and works in any environment with native `.wasm` module imports.
+- `lazy` (default: `false`): Import `.wasm` files through a lazily evaluated proxy, for runtimes without top-level `await`.
 
 ## Tools
 
-unwasm provides useful build tools to operate on `.wasm` modules directly.
-
-**Note:** `unwasm/tools` subpath export is **not** meant or optimized for production runtime. Only rely on it for development and build time.
+unwasm ships build-time helpers for working with `.wasm` modules directly.
 
 ### `parseWasm`
 
-Parses the `wasm` binary format to extract a module's imports and exports. It is a small, dependency-free reader that only decodes the sections describing the module interface and skips over the rest.
+Parses the wasm binary format to extract a module's imports and exports. It is a small, dependency-free reader that decodes only the sections describing the module interface and skips the rest.
 
 ```js
 import { readFile } from "node:fs/promises";
@@ -177,11 +163,9 @@ Example parsed result:
 
 ## Auto Imports
 
-unwasm can automatically infer the imports object and bundle them using imports maps (read more: [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap), [Node.js](https://nodejs.org/api/packages.html#imports) and [WICG](https://github.com/WICG/import-maps)).
+unwasm can infer the imports object for you and bundle it using import maps (read more: [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap), [Node.js](https://nodejs.org/api/packages.html#imports), and [WICG](https://github.com/WICG/import-maps)).
 
-To hint to the bundler how to resolve imports needed by the `.wasm` file, you need to define them in a parent `package.json` file.
-
-**Example:**
+To tell the bundler how to resolve the imports a `.wasm` file needs, declare them in a parent `package.json`:
 
 ```json
 {
@@ -194,11 +178,12 @@ To hint to the bundler how to resolve imports needed by the `.wasm` file, you ne
 }
 ```
 
-**Note:** The imports can also be prefixed with `#` like `#env` if you like to respect Node.js conventions.
+> [!TIP]
+> You can prefix import names with `#` (for example `#env`) to follow Node.js conventions.
 
 ## Wasm ESM Imports
 
-unwasm also supports importing from other ES modules in Wasm (read more: [ESM Integration Spec](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration)).
+Wasm modules can also import from ES modules (read more: [ESM Integration Spec](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration)).
 
 **Example:**
 
