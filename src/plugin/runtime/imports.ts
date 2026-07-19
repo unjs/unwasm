@@ -14,27 +14,6 @@ interface PackageJSON {
   imports?: Record<string, string | Record<string, string>>;
 }
 
-/**
- * Read the nearest `package.json` by walking up from `from`.
- *
- * Returns an empty object if none is found.
- */
-async function readNearestPackageJSON(from: string): Promise<PackageJSON> {
-  let dir = dirname(from);
-  let lastDir = "";
-  while (dir !== lastDir) {
-    const contents = await readFile(join(dir, "package.json"), "utf8").catch(
-      () => undefined,
-    );
-    if (contents !== undefined) {
-      return JSON.parse(contents) as PackageJSON;
-    }
-    lastDir = dir;
-    dir = dirname(dir);
-  }
-  return {};
-}
-
 export async function getWasmImports(
   asset: WasmAsset,
   _opts: UnwasmPluginOptions,
@@ -79,4 +58,22 @@ export async function getWasmImports(
     code,
     resolved,
   };
+}
+
+// Read the nearest `package.json` by walking up from `from`.
+// Returns an empty object if none is found.
+async function readNearestPackageJSON(from: string): Promise<PackageJSON> {
+  let dir = dirname(from);
+  let lastDir = "";
+  while (dir !== lastDir) {
+    const contents = await readFile(join(dir, "package.json"), "utf8").catch(
+      () => undefined,
+    );
+    if (contents !== undefined) {
+      return JSON.parse(contents) as PackageJSON;
+    }
+    lastDir = dir;
+    dir = dirname(dir);
+  }
+  return {};
 }
