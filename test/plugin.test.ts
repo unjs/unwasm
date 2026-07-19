@@ -1,13 +1,15 @@
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
 import { rolldown } from "rolldown";
 import { build as viteBuild } from "vite";
+import { rspack } from "@rspack/core";
 import { UnwasmPluginOptions, unwasm } from "../src/plugin";
+import { unwasmRspack } from "../src/plugin/rspack";
 import { dirname } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
@@ -18,6 +20,7 @@ const builds = [
   { builder: "rollup", buildFn: _rollupBuild },
   { builder: "rolldown", buildFn: _rolldownBuild },
   { builder: "vite", buildFn: _viteBuild },
+  { builder: "rspack", buildFn: _rspackBuild },
 ];
 
 for (const { builder, buildFn } of builds) {
@@ -74,7 +77,13 @@ for (const { builder, buildFn } of builds) {
       ).catch((error_) => error_);
       // Rolldown-based builders aggregate build errors into `errors`.
       const causes = [error, ...(error.errors || [])];
-      expect(causes.map((c) => c.code)).toContain("MISSING_EXPORT");
+      // Rollup-family builders tag this as `MISSING_EXPORT`; rspack reports an
+      // `ESModulesLinkingError` with no code, so match on either signal.
+      const reasons = causes.map((c) => `${c.code ?? ""} ${c.message ?? ""}`);
+      expect(reasons.some((r) => r.includes("MISSING_EXPORT") || r.includes("was not found"))).toBe(
+        true,
+      );
+      expect(reasons.some((r) => r.includes("badImportName"))).toBe(true);
     });
   });
 }
@@ -128,6 +137,56 @@ async function _viteBuild(entry: string, name: string, pluginOpts: UnwasmPluginO
     },
   });
   return (build as any)[0];
+}
+
+async function _rspackBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
+  const stats = await new Promise<any>((resolve, reject) => {
+    rspack(
+      {
+        entry: r(entry),
+        mode: "development",
+        devtool: false,
+        target: ["web", "es2022"],
+        context: dirname(r(entry)),
+        output: {
+          path: r(`.tmp/${name}`),
+          filename: "index.mjs",
+          chunkFilename: "[name].mjs",
+          chunkFormat: "module",
+          // `modern-module` emits runtime-free ESM, closest to the other builders.
+          library: { type: "modern-module" },
+          // Keep everything in the entry chunk: rspack's async chunk loader uses a
+          // computed `import()` that Miniflare's static module scan cannot follow.
+          asyncChunks: false,
+          clean: true,
+        },
+        optimization: { minimize: false, splitChunks: false },
+        plugins: [unwasmRspack(pluginOpts)],
+      },
+      (error, stats_) => (error ? reject(error) : resolve(stats_)),
+    );
+  });
+
+  const { errors, assets } = stats.toJson({ errors: true, assets: true });
+  if (errors?.length) {
+    // Mirror rolldown's aggregated shape so the shared assertions apply.
+    throw Object.assign(new Error(errors[0].message), { errors, code: errors[0].code });
+  }
+
+  // Entry chunk first, matching the other builders' output ordering.
+  const names: string[] = assets
+    .map((a: any) => a.name)
+    .filter((n: string) => !n.endsWith(".wasm"))
+    .sort((a: string, b: string) => Number(b === "index.mjs") - Number(a === "index.mjs"));
+
+  return {
+    output: await Promise.all(
+      names.map(async (fileName) => ({
+        fileName,
+        code: await readFile(r(`.tmp/${name}/${fileName}`), "utf8"),
+      })),
+    ),
+  };
 }
 
 async function _evalCloudflare(name: string) {

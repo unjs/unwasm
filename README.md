@@ -77,7 +77,7 @@ const { sum } = await WebAssembly.instantiate(_sumMod).then((i) => i.exports);
 
 ## Integration
 
-Unwasm needs to transform the `.wasm` imports to the compatible bindings. Currently, the only method is using a rollup plugin. In the future, more usage methods will be introduced.
+Unwasm needs to transform the `.wasm` imports to the compatible bindings. This is currently done with a rollup-compatible plugin (also usable with rolldown and Vite) or a dedicated rspack plugin. In the future, more usage methods will be introduced.
 
 ### Install
 
@@ -119,6 +119,22 @@ export default {
   plugins: [unwasm({/* options */})],
 };
 ```
+
+The same plugin works with [rolldown](https://rolldown.rs) and [Vite](https://vite.dev).
+
+###### Rspack
+
+```js
+// rspack.config.mjs
+import { unwasmRspack } from "unwasm/plugin/rspack";
+
+export default {
+  plugins: [unwasmRspack({/* options */})],
+};
+```
+
+> [!NOTE]
+> With `esmImport: true`, rspack must emit ESM output (for example `output.library.type: "modern-module"`) so that the generated `import()` of the `.wasm` asset is preserved.
 
 ### Plugin Options
 

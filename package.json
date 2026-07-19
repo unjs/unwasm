@@ -12,6 +12,7 @@
   "exports": {
     "./examples/*": "./examples/*",
     "./plugin": "./dist/plugin/index.mjs",
+    "./plugin/rspack": "./dist/plugin/rspack.mjs",
     "./tools": "./dist/tools/index.mjs"
   },
   "scripts": {
@@ -25,12 +26,21 @@
     "test": "pnpm lint && pnpm test:types && vitest run --coverage",
     "test:types": "tsgo --noEmit --skipLibCheck"
   },
+  "peerDependencies": {
+    "@rspack/core": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@rspack/core": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "exsolve": "^1.1.0",
     "magic-string": "^1.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rspack/core": "^2.1.4",
     "@types/node": "^26.1.1",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitest/coverage-v8": "^4.1.10",
