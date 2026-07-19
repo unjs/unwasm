@@ -7,10 +7,7 @@ import {
 import { getWasmImports } from "./imports";
 
 /* Generate the binding code for the wasm module */
-export async function getWasmESMBinding(
-  asset: WasmAsset,
-  opts: UnwasmPluginOptions,
-) {
+export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
   const autoImports = await getWasmImports(asset, opts);
 
   const instantiateCode: string = opts.esmImport
@@ -23,10 +20,7 @@ export async function getWasmESMBinding(
 }
 
 /** Generate WebAssembly.Module binding for compatibility */
-export function getWasmModuleBinding(
-  asset: WasmAsset,
-  opts: UnwasmPluginOptions,
-) {
+export function getWasmModuleBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
   return opts.esmImport
     ? /* js */ `
 const _mod = ${opts.lazy === true ? "" : `await`} import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
@@ -74,9 +68,7 @@ ${instantiateCode}
 
 const $exports = getExports(await _instantiate());
 
-${asset.exports
-  .map((name) => `export const ${name} = $exports.${name};`)
-  .join("\n")}
+${asset.exports.map((name) => `export const ${name} = $exports.${name};`).join("\n")}
 
 const defaultExport = () => $exports;
 ${asset.exports.map((name) => `defaultExport["${name}"] = $exports.${name};`).join("\n")}
@@ -93,9 +85,7 @@ ${instantiateCode}
 
 const _mod = createLazyWasmModule(_instantiate);
 
-${asset.exports
-  .map((name) => `export const ${name} = _mod.${name};`)
-  .join("\n")}
+${asset.exports.map((name) => `export const ${name} = _mod.${name};`).join("\n")}
 
 export default _mod;
       `;

@@ -56,10 +56,7 @@ export interface ResolvedId {
 export interface PluginContext {
   addWatchFile: (id: string) => void;
   emitFile: (file: EmittedAsset) => string;
-  resolve: (
-    source: string,
-    importer?: string,
-  ) => Promise<ResolvedId | null | undefined>;
+  resolve: (source: string, importer?: string) => Promise<ResolvedId | null | undefined>;
   warn: (log: Log | string) => void;
 }
 
@@ -73,8 +70,7 @@ export interface PartialResolvedId {
   resolvedBy?: string | undefined;
 }
 
-export type ResolveIdResult =
-  string | false | PartialResolvedId | null | undefined | void;
+export type ResolveIdResult = string | false | PartialResolvedId | null | undefined | void;
 
 export type LoadResult = string | null | undefined | void;
 
@@ -122,11 +118,7 @@ export interface UnwasmPlugin {
   transform: {
     order: "pre";
     filter: { id: StringFilter };
-    handler: (
-      this: PluginContext,
-      code: string,
-      id: string,
-    ) => Awaitable<TransformResult>;
+    handler: (this: PluginContext, code: string, id: string) => Awaitable<TransformResult>;
   };
 
   generateBundle: (this: PluginContext) => void;

@@ -8,10 +8,7 @@ interface PackageJSON {
   imports?: Record<string, string | Record<string, string>>;
 }
 
-export async function getWasmImports(
-  asset: WasmAsset,
-  _opts: UnwasmPluginOptions,
-) {
+export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOptions) {
   const importNames = Object.keys(asset.imports || {});
   if (importNames.length === 0) {
     return {
@@ -32,8 +29,7 @@ export async function getWasmImports(
     const importNames = asset.imports[moduleName];
 
     // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
-    const importAlias =
-      pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
+    const importAlias = pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
     const resolved =
       importAlias && typeof importAlias === "string"
         ? importAlias
@@ -42,10 +38,7 @@ export async function getWasmImports(
     const importName = "_imports_" + safeVariableName(moduleName);
     imports.push(`import * as ${importName} from ${JSON.stringify(resolved)};`);
     importsObject[moduleName] = Object.fromEntries(
-      importNames.map((name) => [
-        name,
-        `${importName}[${JSON.stringify(name)}]`,
-      ]),
+      importNames.map((name) => [name, `${importName}[${JSON.stringify(name)}]`]),
     );
   }
 
@@ -59,16 +52,11 @@ export async function getWasmImports(
 
 // Turn an arbitrary module name into a valid identifier fragment.
 function safeVariableName(name: string): string {
-  return name
-    .replace(/^\d/, (r) => `_${r}`)
-    .replace(/\W/g, (r) => "_" + r.codePointAt(0));
+  return name.replace(/^\d/, (r) => `_${r}`).replace(/\W/g, (r) => "_" + r.codePointAt(0));
 }
 
 // Generate an object literal from raw (already generated) value expressions.
-function genObject(
-  object: Record<string, string | Record<string, string>>,
-  indent = "",
-): string {
+function genObject(object: Record<string, string | Record<string, string>>, indent = ""): string {
   const entries = Object.entries(object);
   if (entries.length === 0) {
     return "{}";
@@ -89,9 +77,7 @@ async function readNearestPackageJSON(from: string): Promise<PackageJSON> {
   let dir = dirname(from);
   let lastDir = "";
   while (dir !== lastDir) {
-    const contents = await readFile(join(dir, "package.json"), "utf8").catch(
-      () => undefined,
-    );
+    const contents = await readFile(join(dir, "package.json"), "utf8").catch(() => undefined);
     if (contents !== undefined) {
       return JSON.parse(contents) as PackageJSON;
     }

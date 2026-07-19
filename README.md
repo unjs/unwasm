@@ -116,11 +116,7 @@ deno install npm:unwasm
 import { unwasm } from "unwasm/plugin";
 
 export default {
-  plugins: [
-    unwasm({
-      /* options */
-    }),
-  ],
+  plugins: [unwasm({/* options */})],
 };
 ```
 

@@ -23,13 +23,7 @@ export type ParseResult = {
   modules: ParsedWasmModule[];
 };
 
-const EXTERNAL_KINDS: ExternalKind[] = [
-  "Func",
-  "Table",
-  "Memory",
-  "Global",
-  "Tag",
-];
+const EXTERNAL_KINDS: ExternalKind[] = ["Func", "Table", "Memory", "Global", "Tag"];
 
 const VALTYPES: Record<number, string> = {
   0x7f: "i32",
@@ -226,11 +220,7 @@ function readTypeSection(reader: WasmReader, end: number): FuncType[] {
   return types;
 }
 
-function readImportSection(
-  reader: WasmReader,
-  end: number,
-  types: FuncType[],
-): ModuleImport[] {
+function readImportSection(reader: WasmReader, end: number, types: FuncType[]): ModuleImport[] {
   const imports: ModuleImport[] = [];
   const length = reader.varuint();
   for (let i = 0; i < length; i++) {
@@ -344,10 +334,9 @@ export function parseWasm(
   try {
     return _parseWasm(toBytes(source));
   } catch (error) {
-    throw new Error(
-      `[unwasm] Failed to parse ${opts.name || "wasm module"}: ${error}`,
-      { cause: error },
-    );
+    throw new Error(`[unwasm] Failed to parse ${opts.name || "wasm module"}: ${error}`, {
+      cause: error,
+    });
   }
 }
 
@@ -365,12 +354,7 @@ function _parseWasm(bytes: Uint8Array): ParseResult {
 
   // Components share the magic but use a different layout, and would otherwise
   // decode as a core module with no imports or exports at all.
-  if (
-    bytes[4] !== 0x01 ||
-    bytes[5] !== 0x00 ||
-    bytes[6] !== 0x00 ||
-    bytes[7] !== 0x00
-  ) {
+  if (bytes[4] !== 0x01 || bytes[5] !== 0x00 || bytes[6] !== 0x00 || bytes[7] !== 0x00) {
     const version = [...bytes.subarray(4, 8)]
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join(" ");
@@ -380,14 +364,10 @@ function _parseWasm(bytes: Uint8Array): ParseResult {
   const sections = readSections(new WasmReader(bytes, 8));
   const at = (section: Section) => new WasmReader(bytes, section.start);
   const find = (id: number, name?: string) =>
-    sections.find(
-      (s) => s.id === id && (name === undefined || s.name === name),
-    );
+    sections.find((s) => s.id === id && (name === undefined || s.name === name));
 
   const typeSection = find(SECTION_TYPE);
-  const types = typeSection
-    ? readTypeSection(at(typeSection), typeSection.end)
-    : [];
+  const types = typeSection ? readTypeSection(at(typeSection), typeSection.end) : [];
 
   const importSection = find(SECTION_IMPORT);
   const imports = importSection
@@ -395,9 +375,7 @@ function _parseWasm(bytes: Uint8Array): ParseResult {
     : [];
 
   const exportSection = find(SECTION_EXPORT);
-  const exports = exportSection
-    ? readExportSection(at(exportSection), exportSection.end)
-    : [];
+  const exports = exportSection ? readExportSection(at(exportSection), exportSection.end) : [];
 
   const nameSection = find(SECTION_CUSTOM, "name");
   if (nameSection && exports.length > 0) {

@@ -9,10 +9,6 @@ type UnwasmPlugin = ReturnType<typeof unwasm>;
 /** Fails to typecheck unless `T` is exactly `true`. */
 type Assert<T extends true> = T;
 
-export type _AssertRollupCompatible = Assert<
-  UnwasmPlugin extends RollupPlugin ? true : false
->;
+export type _AssertRollupCompatible = Assert<UnwasmPlugin extends RollupPlugin ? true : false>;
 
-export type _AssertViteCompatible = Assert<
-  UnwasmPlugin extends VitePlugin ? true : false
->;
+export type _AssertViteCompatible = Assert<UnwasmPlugin extends VitePlugin ? true : false>;

@@ -114,10 +114,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
     load: {
       order: "pre",
       filter: {
-        id: [
-          new RegExp("^" + escapeRegExp(UMWASM_HELPERS_ID) + "$"),
-          WASM_ID_RE,
-        ],
+        id: [new RegExp("^" + escapeRegExp(UMWASM_HELPERS_ID) + "$"), WASM_ID_RE],
       },
       async handler(id) {
         if (id === UMWASM_HELPERS_ID) {
@@ -162,8 +159,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
               this.warn({
                 id,
                 cause: error as Error,
-                message:
-                  "Failed to parse the WebAssembly module; falling back to module mode.",
+                message: "Failed to parse the WebAssembly module; falling back to module mode.",
               });
             }
             isModule = true;
@@ -219,10 +215,8 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
         if (!asset) {
           return;
         }
-        const nestedLevel =
-          chunk.fileName.split("/").filter(Boolean /* handle // */).length - 1;
-        const relativeId =
-          (nestedLevel ? "../".repeat(nestedLevel) : "./") + asset.name;
+        const nestedLevel = chunk.fileName.split("/").filter(Boolean /* handle // */).length - 1;
+        const relativeId = (nestedLevel ? "../".repeat(nestedLevel) : "./") + asset.name;
         return {
           relativeId,
           asset,
@@ -233,9 +227,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
         const index = match.index as number;
         const len = match[0].length;
         if (!resolved || !index) {
-          console.warn(
-            `Failed to resolve WASM import: ${JSON.stringify(match[1])}`,
-          );
+          console.warn(`Failed to resolve WASM import: ${JSON.stringify(match[1])}`);
           continue;
         }
         s.overwrite(index, index + len, resolved.relativeId);

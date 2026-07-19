@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## v0.5.3
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.5.2...v0.5.3)
@@ -54,7 +53,7 @@
 
 ### 🚀 Enhancements
 
-- ⚠️  Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
+- ⚠️ Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
 
 ### 🏡 Chore
 
@@ -62,7 +61,7 @@
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
+- ⚠️ Auto fallback to module mode ([#76](https://github.com/unjs/unwasm/pull/76))
 
 ### ❤️ Contributors
 
@@ -110,7 +109,7 @@
 
 ### 📦 Build
 
-- ⚠️  Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
+- ⚠️ Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
 
 ### 🏡 Chore
 
@@ -124,7 +123,7 @@
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
+- ⚠️ Esm-only dist ([81fcedf](https://github.com/unjs/unwasm/commit/81fcedf))
 
 ### ❤️ Contributors
 
@@ -345,7 +344,7 @@
 
 ### 🚀 Enhancements
 
-- ⚠️  Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
+- ⚠️ Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
 
 ### 📦 Build
 
@@ -358,7 +357,7 @@
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
+- ⚠️ Parse wasm modules ([a7d1783](https://github.com/unjs/unwasm/commit/a7d1783))
 
 ### ❤️ Contributors
 
@@ -370,7 +369,7 @@
 
 ### 🚀 Enhancements
 
-- ⚠️  Support custom init ([6861425](https://github.com/unjs/unwasm/commit/6861425))
+- ⚠️ Support custom init ([6861425](https://github.com/unjs/unwasm/commit/6861425))
 - Expose `unwasm/examples` ([04127bf](https://github.com/unjs/unwasm/commit/04127bf))
 
 ### 💅 Refactors
@@ -387,7 +386,7 @@
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Support custom init ([6861425](https://github.com/unjs/unwasm/commit/6861425))
+- ⚠️ Support custom init ([6861425](https://github.com/unjs/unwasm/commit/6861425))
 
 ### ❤️ Contributors
 
@@ -398,7 +397,6 @@
 [compare changes](https://github.com/unjs/unwasm/compare/v0.0.1...v0.1.0)
 
 ## v0.0.1
-
 
 ### 💅 Refactors
 
@@ -412,4 +410,3 @@
 ### ❤️ Contributors
 
 - Pooya Parsa ([@pi0](http://github.com/pi0))
-

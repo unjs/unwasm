@@ -1,1 +1,1 @@
-export const seed = () => Math.random() * Date.now()
+export const seed = () => Math.random() * Date.now();

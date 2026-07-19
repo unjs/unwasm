@@ -30,9 +30,7 @@ function compile(wat: string, opts: { debugNames?: boolean } = {}) {
   };
   const module = wabt.parseWat("test.wat", wat, features);
   try {
-    return Buffer.from(
-      module.toBinary({ write_debug_names: opts.debugNames ?? false }).buffer,
-    );
+    return Buffer.from(module.toBinary({ write_debug_names: opts.debugNames ?? false }).buffer);
   } finally {
     module.destroy();
   }
@@ -54,8 +52,7 @@ const section = (id: number, body: number[]) => [id, body.length, ...body];
 /**
  * Hand assembled binaries, for shapes wabt's `.wat` parser cannot express.
  */
-const wasmBytes = (...sections: number[][]) =>
-  Buffer.from([...WASM_HEADER, ...sections.flat()]);
+const wasmBytes = (...sections: number[][]) => Buffer.from([...WASM_HEADER, ...sections.flat()]);
 
 describe("parseWasm", () => {
   it("random.wasm", async () => {
@@ -205,13 +202,7 @@ describe("parseWasm", () => {
       (import "env" "last" (func (param i32)))
     )`);
 
-    expect(imports.map((i) => i.name)).toEqual([
-      "mem",
-      "tbl",
-      "glob",
-      "globMut",
-      "last",
-    ]);
+    expect(imports.map((i) => i.name)).toEqual(["mem", "tbl", "glob", "globMut", "last"]);
     expect(imports.at(-1)).toEqual({
       module: "env",
       name: "last",
@@ -364,9 +355,7 @@ describe("parseWasm", () => {
       section(0, [0x7f, 0x00]),
     );
 
-    expect(parseWasm(bytes).modules[0].imports).toMatchObject([
-      { module: "env", name: "fn" },
-    ]);
+    expect(parseWasm(bytes).modules[0].imports).toMatchObject([{ module: "env", name: "fn" }]);
   });
 
   it("reports unknown value types without failing", () => {
@@ -377,9 +366,7 @@ describe("parseWasm", () => {
       section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x00, 0x00]),
     );
 
-    expect(parseWasm(bytes).modules[0].imports[0].params).toEqual([
-      { type: "unknown(0x5b)" },
-    ]);
+    expect(parseWasm(bytes).modules[0].imports[0].params).toEqual([{ type: "unknown(0x5b)" }]);
   });
 
   describe("proposals", () => {
@@ -456,30 +443,13 @@ describe("parseWasm", () => {
       // would shift every following read and silently rename the imports.
       const table = wasmBytes(
         section(1, [0x01, 0x60, 0x00, 0x00]),
-        section(2, [
-          0x01,
-          ...wasmName("env"),
-          ...wasmName("tbl"),
-          0x01,
-          0x63,
-          0x70,
-          0x00,
-          0x00,
-        ]),
+        section(2, [0x01, ...wasmName("env"), ...wasmName("tbl"), 0x01, 0x63, 0x70, 0x00, 0x00]),
       );
       expect(() => parseWasm(table)).toThrow(/unsupported typed reference/);
 
       const global = wasmBytes(
         section(1, [0x01, 0x60, 0x00, 0x00]),
-        section(2, [
-          0x01,
-          ...wasmName("env"),
-          ...wasmName("glob"),
-          0x03,
-          0x64,
-          0x70,
-          0x00,
-        ]),
+        section(2, [0x01, ...wasmName("env"), ...wasmName("glob"), 0x03, 0x64, 0x70, 0x00]),
       );
       expect(() => parseWasm(global)).toThrow(/unsupported typed reference/);
     });
@@ -487,9 +457,7 @@ describe("parseWasm", () => {
 
   describe("errors", () => {
     it("rejects a non-wasm buffer", () => {
-      expect(() => parseWasm(Buffer.from("not wasm at all"))).toThrow(
-        /invalid magic header/,
-      );
+      expect(() => parseWasm(Buffer.from("not wasm at all"))).toThrow(/invalid magic header/);
     });
 
     it("rejects an empty buffer", () => {
@@ -503,27 +471,19 @@ describe("parseWasm", () => {
         (export "f" (func $f))
       )`);
 
-      expect(() => parseWasm(source.subarray(0, -5))).toThrow(
-        /exceeds the end of the binary/,
-      );
+      expect(() => parseWasm(source.subarray(0, -5))).toThrow(/exceeds the end of the binary/);
     });
 
     it("rejects a component instead of reporting it as empty", () => {
       // Components share the magic but use layer 1; decoding one as a core
       // module yields no imports or exports and no error at all.
-      const component = Buffer.from([
-        0x00, 0x61, 0x73, 0x6d, 0x0d, 0x00, 0x01, 0x00,
-      ]);
+      const component = Buffer.from([0x00, 0x61, 0x73, 0x6d, 0x0d, 0x00, 0x01, 0x00]);
 
-      expect(() => parseWasm(component)).toThrow(
-        /unsupported binary version \(0x0d 00 01 00\)/,
-      );
+      expect(() => parseWasm(component)).toThrow(/unsupported binary version \(0x0d 00 01 00\)/);
     });
 
     it("rejects an export kind it cannot identify", () => {
-      const bytes = wasmBytes(
-        section(7, [0x01, ...wasmName("mystery"), 0x09, 0x00]),
-      );
+      const bytes = wasmBytes(section(7, [0x01, ...wasmName("mystery"), 0x09, 0x00]));
 
       expect(() => parseWasm(bytes)).toThrow(/unsupported export kind: 9/);
     });
@@ -550,9 +510,7 @@ describe("parseWasm", () => {
         0x63, // custom section "abc"
       ]);
 
-      expect(() => parseWasm(bytes)).toThrow(
-        /section contents overrun the section length/,
-      );
+      expect(() => parseWasm(bytes)).toThrow(/section contents overrun the section length/);
     });
 
     it("preserves a leading U+FEFF in names", () => {
@@ -584,9 +542,7 @@ describe("parseWasm", () => {
     });
 
     it("rejects an import kind it cannot identify", () => {
-      const bytes = wasmBytes(
-        section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x09]),
-      );
+      const bytes = wasmBytes(section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x09]));
 
       expect(() => parseWasm(bytes)).toThrow(/unsupported import kind: 9/);
     });
@@ -599,9 +555,7 @@ describe("parseWasm", () => {
         error = error_;
       }
 
-      expect(error.message).toMatch(
-        /\[unwasm\] Failed to parse my-module\.wasm/,
-      );
+      expect(error.message).toMatch(/\[unwasm\] Failed to parse my-module\.wasm/);
       expect(error.cause).toBeInstanceOf(Error);
     });
   });

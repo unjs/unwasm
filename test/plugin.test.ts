@@ -21,11 +21,7 @@ const builds = [
 for (const { builder, buildFn } of builds) {
   describe(`plugin:${builder}`, () => {
     it("inline", async () => {
-      const { output } = await buildFn(
-        "fixture/static-import.mjs",
-        `${builder}-inline`,
-        {},
-      );
+      const { output } = await buildFn("fixture/static-import.mjs", `${builder}-inline`, {});
       const code = output[0].code;
       const mod = await evalModule(code, {
         url: r("fixture/static-import.mjs"),
@@ -49,11 +45,7 @@ for (const { builder, buildFn } of builds) {
     });
 
     it("module", async () => {
-      const { output } = await buildFn(
-        "fixture/module-import.mjs",
-        `${builder}-module`,
-        {},
-      );
+      const { output } = await buildFn("fixture/module-import.mjs", `${builder}-module`, {});
       const code = output[0].code;
       const mod = await evalModule(code, {
         url: r(`fixture/${builder}-module.mjs`),
@@ -62,11 +54,7 @@ for (const { builder, buildFn } of builds) {
     });
 
     it("esm-integration", async () => {
-      const { output } = await buildFn(
-        "fixture/esm-integration.mjs",
-        `${builder}-inline`,
-        {},
-      );
+      const { output } = await buildFn("fixture/esm-integration.mjs", `${builder}-inline`, {});
       const code = output[0].code;
       const mod = await evalModule(code, {
         url: r("fixture/esm-integration.mjs"),
@@ -76,11 +64,7 @@ for (const { builder, buildFn } of builds) {
 
     it("esm-integration-missing-import", async () => {
       await expect(() =>
-        buildFn(
-          "fixture/esm-integration-missing-import.mjs",
-          `${builder}-inline`,
-          {},
-        ),
+        buildFn("fixture/esm-integration-missing-import.mjs", `${builder}-inline`, {}),
       ).rejects.toThrowError(
         expect.objectContaining({
           code: "MISSING_EXPORT",
@@ -92,11 +76,7 @@ for (const { builder, buildFn } of builds) {
 
 // --- Utils ---
 
-async function _rollupBuild(
-  entry: string,
-  name: string,
-  pluginOpts: UnwasmPluginOptions,
-) {
+async function _rollupBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
   const build = await rollup({
     input: r(entry),
     plugins: [rollupNodeResolve({}), unwasm(pluginOpts)],
@@ -109,11 +89,7 @@ async function _rollupBuild(
   });
 }
 
-async function _viteBuild(
-  entry: string,
-  name: string,
-  pluginOpts: UnwasmPluginOptions,
-) {
+async function _viteBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
   const build = await viteBuild({
     logLevel: "warn",
     root: dirname(r(entry)),
