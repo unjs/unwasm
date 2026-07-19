@@ -1,10 +1,4 @@
 import { readFile } from "node:fs/promises";
-import {
-  genSafeVariableName,
-  genObjectFromRaw,
-  genString,
-  genImport,
-} from "knitwork";
 import { resolveModulePath } from "exsolve";
 import { dirname, join } from "pathe";
 
@@ -45,19 +39,48 @@ export async function getWasmImports(
         ? importAlias
         : resolveModulePath(moduleName, { from: asset.id });
 
-    const importName = "_imports_" + genSafeVariableName(moduleName);
-    imports.push(genImport(resolved, { name: "*", as: importName }));
+    const importName = "_imports_" + safeVariableName(moduleName);
+    imports.push(`import * as ${importName} from ${JSON.stringify(resolved)};`);
     importsObject[moduleName] = Object.fromEntries(
-      importNames.map((name) => [name, `${importName}[${genString(name)}]`]),
+      importNames.map((name) => [
+        name,
+        `${importName}[${JSON.stringify(name)}]`,
+      ]),
     );
   }
 
-  const code = `${imports.join("\n")}\n\nconst _imports = ${genObjectFromRaw(importsObject)}`;
+  const code = `${imports.join("\n")}\n\nconst _imports = ${genObject(importsObject)}`;
 
   return {
     code,
     resolved,
   };
+}
+
+// Turn an arbitrary module name into a valid identifier fragment.
+function safeVariableName(name: string): string {
+  return name
+    .replace(/^\d/, (r) => `_${r}`)
+    .replace(/\W/g, (r) => "_" + r.codePointAt(0));
+}
+
+// Generate an object literal from raw (already generated) value expressions.
+function genObject(
+  object: Record<string, string | Record<string, string>>,
+  indent = "",
+): string {
+  const entries = Object.entries(object);
+  if (entries.length === 0) {
+    return "{}";
+  }
+  const childIndent = indent + "  ";
+  const lines = entries.map(
+    ([key, value]) =>
+      `${childIndent}${JSON.stringify(key)}: ${
+        typeof value === "string" ? value : genObject(value, childIndent)
+      }`,
+  );
+  return `{\n${lines.join(",\n")}\n${indent}}`;
 }
 
 // Read the nearest `package.json` by walking up from `from`.
