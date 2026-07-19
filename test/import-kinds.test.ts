@@ -30,11 +30,15 @@ const WAT = `(module
 )`;
 
 /** Write a self contained fixture package and bundle its entry. */
-async function buildFixture(name: string, deps: string) {
+async function buildFixture(
+  name: string,
+  deps: string,
+  opts: { wat?: string; lazy?: boolean } = {},
+) {
   const dir = `${TMP}/${name}`;
   await mkdir(dir, { recursive: true });
 
-  const module = wabt.parseWat("mod.wat", WAT);
+  const module = wabt.parseWat("mod.wat", opts.wat ?? WAT, { reference_types: true });
   try {
     await writeFile(`${dir}/mod.wasm`, Buffer.from(module.toBinary({}).buffer));
   } finally {
@@ -47,7 +51,7 @@ async function buildFixture(name: string, deps: string) {
 
   const build = await rollup({
     input: `${dir}/index.mjs`,
-    plugins: [rollupNodeResolve({}), unwasm({})],
+    plugins: [rollupNodeResolve({}), unwasm({ lazy: opts.lazy })],
   });
   const { output } = await build.generate({ format: "esm" });
   return { code: output[0].code, url: `${dir}/index.mjs` };
@@ -87,6 +91,20 @@ describe("non-function imports", () => {
     );
   });
 
+  it("rejects lazily rather than throwing out of the caller", async () => {
+    const { code, url } = await buildFixture(
+      "lazy",
+      `export const sharedMem = new ArrayBuffer(65536);
+       export const getValue = () => 42;`,
+      { lazy: true },
+    );
+
+    // In lazy mode nothing is instantiated until a call, and that call must
+    // return a rejected promise: `.catch()` has to be reachable.
+    const mod = await evalModule(code, { url });
+    await expect(mod.readValue()).rejects.toThrow(/expected a WebAssembly\.Memory/);
+  });
+
   it("still rejects a function import that is not callable", async () => {
     const { code, url } = await buildFixture(
       "not-a-function",
@@ -97,5 +115,49 @@ describe("non-function imports", () => {
     await expect(evalModule(code, { url })).rejects.toThrow(
       /`getValue`.+expected a function, got Number/,
     );
+  });
+
+  // The guard must never reject what the engine would have accepted: a false
+  // positive breaks a build that works today.
+  describe("values the engine accepts", () => {
+    it("accepts any JS value for a reference typed global", async () => {
+      // `externref` globals take arbitrary values, so a numeric check would
+      // reject a perfectly valid import.
+      const { code, url } = await buildFixture(
+        "externref-global",
+        `export const cfg = { hello: "world" };
+         export const count = 7;
+         export const getValue = () => 42;
+         export const sharedMem = new WebAssembly.Memory({ initial: 1 });`,
+        {
+          wat: `(module
+            (import "./deps.mjs" "sharedMem" (memory 1))
+            (import "./deps.mjs" "cfg" (global externref))
+            (import "./deps.mjs" "count" (global i32))
+            (import "./deps.mjs" "getValue" (func $getValue (result i32)))
+            (func (export "readValue") (result i32)
+              call $getValue
+            )
+          )`,
+        },
+      );
+
+      const mod = await evalModule(code, { url });
+      expect(mod.readValue()).toBe(42);
+    });
+
+    it("accepts a WebAssembly object from another realm", async () => {
+      // The engine tests for an internal slot, which `instanceof` cannot see
+      // across realms. Memories from a vm context, worker or iframe are valid.
+      const { code, url } = await buildFixture(
+        "cross-realm",
+        `import { runInNewContext } from "node:vm";
+         export const sharedMem = runInNewContext("new WebAssembly.Memory({ initial: 1 })");
+         export const getValue = () => 42;`,
+      );
+
+      const mod = await evalModule(code, { url });
+      expect(mod.readValue()).toBe(42);
+    });
   });
 });

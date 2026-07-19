@@ -30,6 +30,8 @@ export interface UnwasmPluginOptions {
 export type WasmImport = {
   name: string;
   type: ExternalKind;
+  /** Only set for `Global` imports; see `ModuleImport.valueType`. */
+  valueType?: string;
 };
 
 export type WasmAsset = {

@@ -26,9 +26,9 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
 
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
-  // `[module, name, kind]` triples, checked against the values the JS modules
-  // actually export before the module is instantiated.
-  const expected: [string, string, ExternalKind][] = [];
+  // `[module, name, kind, valueType?]` entries, checked against the values the
+  // JS modules actually export before the module is instantiated.
+  const expected: ([string, string, ExternalKind] | [string, string, ExternalKind, string])[] = [];
 
   for (const moduleName of importNames) {
     const moduleImports = asset.imports[moduleName];
@@ -45,13 +45,9 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
     importsObject[moduleName] = Object.fromEntries(
       moduleImports.map(({ name }) => [name, `${importName}[${JSON.stringify(name)}]`]),
     );
-    expected.push(
-      ...moduleImports.map(({ name, type }): [string, string, ExternalKind] => [
-        moduleName,
-        name,
-        type,
-      ]),
-    );
+    for (const { name, type, valueType } of moduleImports) {
+      expected.push(valueType ? [moduleName, name, type, valueType] : [moduleName, name, type]);
+    }
   }
 
   const code = [

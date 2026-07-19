@@ -42,7 +42,11 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
           if (!imports[imp.module]) {
             imports[imp.module] = [];
           }
-          imports[imp.module].push({ name: imp.name, type: imp.type });
+          imports[imp.module].push({
+            name: imp.name,
+            type: imp.type,
+            valueType: imp.valueType,
+          });
         }
       }
     } catch (error) {

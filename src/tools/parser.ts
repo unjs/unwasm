@@ -13,6 +13,12 @@ export type ModuleImport = {
    * object, so consumers need the kind to say anything useful about a mismatch.
    */
   type: ExternalKind;
+  /**
+   * For `Global` imports, the type of the value held. A reference typed global
+   * accepts any JS value, so consumers cannot say anything about one without
+   * knowing this.
+   */
+  valueType?: string;
   returnType?: string;
   params?: { id?: string; type: string }[];
 };
@@ -261,7 +267,7 @@ function readImportSection(reader: WasmReader, end: number, types: FuncType[]): 
       }
       case 3: {
         // global
-        reader.valtype();
+        entry.valueType = reader.valtype();
         reader.u8(); // mutability
         break;
       }

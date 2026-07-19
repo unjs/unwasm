@@ -54,7 +54,9 @@ import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 
 ${importsCode}
 
-function _instantiate(imports = _imports) {
+// \`async\` so a rejected import check is reported the same way an instantiation
+// failure is, rather than throwing out of the caller synchronously.
+async function _instantiate(imports = _imports) {
   ${checkCode}
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
   return WebAssembly.instantiate(_data, imports)  }
