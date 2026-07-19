@@ -1,5 +1,4 @@
-// TODO: Use normal import in next major with ESM-only dist
-// import { readPackageJSON } from "pkg-types";
+import { readFile } from "node:fs/promises";
 import {
   genSafeVariableName,
   genObjectFromRaw,
@@ -7,8 +6,34 @@ import {
   genImport,
 } from "knitwork";
 import { resolveModulePath } from "exsolve";
+import { dirname, join } from "pathe";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
+
+interface PackageJSON {
+  imports?: Record<string, string | Record<string, string>>;
+}
+
+/**
+ * Read the nearest `package.json` by walking up from `from`.
+ *
+ * Returns an empty object if none is found.
+ */
+async function readNearestPackageJSON(from: string): Promise<PackageJSON> {
+  let dir = dirname(from);
+  let lastDir = "";
+  while (dir !== lastDir) {
+    const contents = await readFile(join(dir, "package.json"), "utf8").catch(
+      () => undefined,
+    );
+    if (contents !== undefined) {
+      return JSON.parse(contents) as PackageJSON;
+    }
+    lastDir = dir;
+    dir = dirname(dir);
+  }
+  return {};
+}
 
 export async function getWasmImports(
   asset: WasmAsset,
@@ -23,8 +48,7 @@ export async function getWasmImports(
   }
 
   // Try to resolve from nearest package.json
-  const { readPackageJSON } = await import("pkg-types");
-  const pkg = await readPackageJSON(asset.id);
+  const pkg = await readNearestPackageJSON(asset.id);
 
   const resolved = true;
 
