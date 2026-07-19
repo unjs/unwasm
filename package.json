@@ -31,7 +31,7 @@
   "dependencies": {
     "exsolve": "^1.0.8",
     "knitwork": "^1.3.0",
-    "magic-string": "^0.30.21",
+    "magic-string": "^1.0.0",
     "mlly": "^1.8.0",
     "pathe": "^2.0.3",
     "pkg-types": "^2.3.0"
