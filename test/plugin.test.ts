@@ -5,6 +5,7 @@ import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
+import { rolldown } from "rolldown";
 import { build as viteBuild } from "vite";
 import { UnwasmPluginOptions, unwasm } from "../src/plugin";
 import { dirname } from "node:path";
@@ -15,6 +16,7 @@ await rm(r(".tmp"), { recursive: true }).catch(() => {});
 
 const builds = [
   { builder: "rollup", buildFn: _rollupBuild },
+  { builder: "rolldown", buildFn: _rolldownBuild },
   { builder: "vite", buildFn: _viteBuild },
 ];
 
@@ -35,8 +37,10 @@ for (const { builder, buildFn } of builds) {
         esmImport: true,
       });
 
-      const code = (output[1] && "code" in output[1] && output[1].code) || "";
-      const esmImport = code.match(/["'](.+wasm)["']/)?.[1];
+      // Chunk order differs per builder; find the chunk referencing the emitted wasm.
+      const esmImport = output
+        .map((o) => ("code" in o ? o.code.match(/["'](\.\/wasm\/.+wasm)["']/)?.[1] : undefined))
+        .find(Boolean);
       expect(esmImport).match(/\.\/wasm\/\w+-[\da-f]+\.wasm/);
       expect(existsSync(r(`.tmp/${name}/${esmImport}`))).toBe(true);
 
@@ -63,13 +67,14 @@ for (const { builder, buildFn } of builds) {
     });
 
     it("esm-integration-missing-import", async () => {
-      await expect(() =>
-        buildFn("fixture/esm-integration-missing-import.mjs", `${builder}-inline`, {}),
-      ).rejects.toThrowError(
-        expect.objectContaining({
-          code: "MISSING_EXPORT",
-        }),
-      );
+      const error = await buildFn(
+        "fixture/esm-integration-missing-import.mjs",
+        `${builder}-inline`,
+        {},
+      ).catch((error_) => error_);
+      // Rolldown-based builders aggregate build errors into `errors`.
+      const causes = [error, ...(error.errors || [])];
+      expect(causes.map((c) => c.code)).toContain("MISSING_EXPORT");
     });
   });
 }
@@ -80,6 +85,19 @@ async function _rollupBuild(entry: string, name: string, pluginOpts: UnwasmPlugi
   const build = await rollup({
     input: r(entry),
     plugins: [rollupNodeResolve({}), unwasm(pluginOpts)],
+  });
+  return await build.write({
+    format: "esm",
+    entryFileNames: "index.mjs",
+    chunkFileNames: "[name].mjs",
+    dir: r(`.tmp/${name}`),
+  });
+}
+
+async function _rolldownBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
+  const build = await rolldown({
+    input: r(entry),
+    plugins: [unwasm(pluginOpts) as any],
   });
   return await build.write({
     format: "esm",
