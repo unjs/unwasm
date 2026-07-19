@@ -12,13 +12,10 @@
     "./tools": "./dist/tools/index.mjs"
   },
   "files": [
-    "dist",
-    "examples/*.wasm",
-    "examples/package.json",
-    "examples/*.mjs"
+    "dist"
   ],
   "scripts": {
-    "build": "obuild && pnpm build:examples",
+    "build": "obuild",
     "build:examples": "node ./examples/build.mjs",
     "dev": "vitest dev",
     "lint": "eslint --cache . && prettier -c src test",
