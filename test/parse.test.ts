@@ -10,9 +10,14 @@ await rm(r(".tmp"), { recursive: true }).catch(() => {});
 
 const wabt = await wabtInit();
 
+/** wabt supports `multi_memory`, but omits it from its bundled type defs. */
+type WatFeatures = NonNullable<Parameters<typeof wabt.parseWat>[2]> & {
+  multi_memory?: boolean;
+};
+
 /** Compile inline `.wat` source so fixtures stay readable. */
 function compile(wat: string, opts: { debugNames?: boolean } = {}) {
-  const module = wabt.parseWat("test.wat", wat, {
+  const features: WatFeatures = {
     multi_value: true,
     simd: true,
     reference_types: true,
@@ -22,7 +27,8 @@ function compile(wat: string, opts: { debugNames?: boolean } = {}) {
     exceptions: true,
     multi_memory: true,
     tail_call: true,
-  });
+  };
+  const module = wabt.parseWat("test.wat", wat, features);
   try {
     return Buffer.from(
       module.toBinary({ write_debug_names: opts.debugNames ?? false }).buffer,
