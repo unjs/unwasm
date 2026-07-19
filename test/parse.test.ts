@@ -347,6 +347,26 @@ describe("parseWasm", () => {
     ]);
   });
 
+  it("discards a function name that overruns its subsection", () => {
+    // The entry's declared name length runs past the subsection end, so the
+    // decoded string is unrelated bytes ("AAAAA" here) and must not be
+    // applied. The export keeps its numeric id instead.
+    const bytes = wasmBytes(
+      section(1, [0x01, 0x60, 0x00, 0x00]),
+      section(3, [0x01, 0x00]),
+      section(7, [0x01, ...wasmName("realExport"), 0x00, 0x00]),
+      section(10, [0x01, 0x02, 0x00, 0x0b]),
+      // Subsection 1 is 3 bytes (count 1, funcidx 0, name length 5), so the
+      // name spills into the 5 trailing bytes after the subsection.
+      section(0, [...wasmName("name"), 0x01, 0x03, 0x01, 0x00, 0x05, 0x41, 0x41, 0x41, 0x41, 0x41]),
+    );
+
+    expect(() => new WebAssembly.Module(bytes)).not.toThrow();
+    expect(parseWasm(bytes).modules[0].exports).toEqual([
+      { name: "realExport", id: 0, type: "Func" },
+    ]);
+  });
+
   it("tolerates a custom section with an unreadable name", () => {
     const bytes = wasmBytes(
       section(1, [0x01, 0x60, 0x00, 0x00]),

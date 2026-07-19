@@ -311,8 +311,11 @@ function readFunctionNames(reader: WasmReader, end: number) {
         const length = reader.varuint();
         for (let i = 0; i < length; i++) {
           const index = reader.varuint();
-          names.set(index, reader.name());
+          const name = reader.name();
+          // A name that overruns its subsection was read from unrelated
+          // bytes; validate before committing it to the map.
           reader.assertWithin(subsectionEnd);
+          names.set(index, name);
         }
       }
       reader.pos = subsectionEnd;
