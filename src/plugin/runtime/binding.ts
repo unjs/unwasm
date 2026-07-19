@@ -11,8 +11,8 @@ export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOpti
   const autoImports = await getWasmImports(asset, opts);
 
   const instantiateCode: string = opts.esmImport
-    ? getESMImportInstantiate(asset, autoImports.code)
-    : getBase64Instantiate(asset, autoImports.code);
+    ? getESMImportInstantiate(asset, autoImports.code, autoImports.check)
+    : getBase64Instantiate(asset, autoImports.code, autoImports.check);
 
   return opts.lazy !== true && autoImports.resolved
     ? getExports(asset, instantiateCode)
@@ -35,11 +35,12 @@ export default _mod;
 }
 
 /** Get the code to instantiate module with direct import */
-function getESMImportInstantiate(asset: WasmAsset, importsCode: string) {
+function getESMImportInstantiate(asset: WasmAsset, importsCode: string, checkCode: string) {
   return /* js */ `
 ${importsCode}
 
 async function _instantiate(imports = _imports) {
+${checkCode}
 const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
 return WebAssembly.instantiate(_mod, imports)
 }
@@ -47,13 +48,14 @@ return WebAssembly.instantiate(_mod, imports)
 }
 
 /** Get the code to instantiate module from inlined base64 data */
-function getBase64Instantiate(asset: WasmAsset, importsCode: string) {
+function getBase64Instantiate(asset: WasmAsset, importsCode: string, checkCode: string) {
   return /* js */ `
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 
 ${importsCode}
 
 function _instantiate(imports = _imports) {
+  ${checkCode}
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
   return WebAssembly.instantiate(_data, imports)  }
   `;

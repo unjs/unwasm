@@ -81,6 +81,7 @@ describe("parseWasm", () => {
                 "name": "seed",
                 "params": [],
                 "returnType": "f64",
+                "type": "Func",
               },
             ],
           },
@@ -135,6 +136,7 @@ describe("parseWasm", () => {
                 "name": "getValue",
                 "params": [],
                 "returnType": "i32",
+                "type": "Func",
               },
             ],
           },
@@ -167,16 +169,18 @@ describe("parseWasm", () => {
     )`);
 
     expect(imports).toEqual([
-      { module: "env", name: "noop", returnType: undefined, params: [] },
+      { module: "env", name: "noop", type: "Func", returnType: undefined, params: [] },
       {
         module: "env",
         name: "add",
+        type: "Func",
         returnType: "f32",
         params: [{ type: "i32" }, { type: "i64" }],
       },
       {
         module: "other",
         name: "wide",
+        type: "Func",
         returnType: "f64",
         params: [{ type: "v128" }, { type: "externref" }, { type: "funcref" }],
       },
@@ -202,10 +206,17 @@ describe("parseWasm", () => {
       (import "env" "last" (func (param i32)))
     )`);
 
-    expect(imports.map((i) => i.name)).toEqual(["mem", "tbl", "glob", "globMut", "last"]);
+    expect(imports.map((i) => `${i.name}:${i.type}`)).toEqual([
+      "mem:Memory",
+      "tbl:Table",
+      "glob:Global",
+      "globMut:Global",
+      "last:Func",
+    ]);
     expect(imports.at(-1)).toEqual({
       module: "env",
       name: "last",
+      type: "Func",
       returnType: undefined,
       params: [{ type: "i32" }],
     });
@@ -316,8 +327,11 @@ describe("parseWasm", () => {
     const module = new WebAssembly.Module(source);
     const { imports, exports } = parseWasm(source).modules[0];
 
-    expect(imports.map((i) => `${i.module}.${i.name}`)).toEqual(
-      WebAssembly.Module.imports(module).map((i) => `${i.module}.${i.name}`),
+    // Kinds are compared against the engine too, so a descriptor that is
+    // skipped correctly but labelled wrongly is still caught.
+    const engineKind = (kind: string) => (kind === "function" ? "func" : kind);
+    expect(imports.map((i) => `${i.module}.${i.name}:${i.type.toLowerCase()}`)).toEqual(
+      WebAssembly.Module.imports(module).map((i) => `${i.module}.${i.name}:${engineKind(i.kind)}`),
     );
     // Compared by kind as well, so the `ExternalKind` mapping is checked
     // against the engine rather than against our own expectations.
@@ -399,7 +413,7 @@ describe("parseWasm", () => {
         (export "myTag" (tag $myTag))
       )`);
 
-      expect(imports.map((i) => i.name)).toEqual(["thrown"]);
+      expect(imports.map((i) => `${i.name}:${i.type}`)).toEqual(["thrown:Tag"]);
       // The imported tag takes tag index 0, so the defined one is index 1.
       expect(exports).toEqual([
         { name: "realFunctionZero", id: 0, type: "Func" },
@@ -434,7 +448,7 @@ describe("parseWasm", () => {
 
       const { imports } = parseWasm(bytes).modules[0];
       expect(imports).toEqual([
-        { module: "env", name: "fn", returnType: undefined, params: undefined },
+        { module: "env", name: "fn", type: "Func", returnType: undefined, params: undefined },
       ]);
     });
 
