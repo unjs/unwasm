@@ -14,9 +14,6 @@ importers:
       magic-string:
         specifier: ^1.0.0
         version: 1.0.0
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
     devDependencies:
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.3

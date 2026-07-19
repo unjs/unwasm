@@ -27,8 +27,7 @@
   },
   "dependencies": {
     "exsolve": "^1.1.0",
-    "magic-string": "^1.0.0",
-    "pathe": "^2.0.3"
+    "magic-string": "^1.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",

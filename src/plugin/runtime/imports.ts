@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolveModulePath } from "exsolve";
-import { dirname, join } from "pathe";
+import { dirname, join } from "node:path";
 
 import { WasmAsset, UnwasmPluginOptions } from "../shared";
 

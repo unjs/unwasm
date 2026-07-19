@@ -1,6 +1,6 @@
 import { promises as fs, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { basename } from "pathe";
+import { basename } from "node:path";
 import MagicString from "magic-string";
 import { parseWasm } from "../tools";
 import type { RawSourceMap, RenderedChunk, UnwasmPlugin } from "./types";
