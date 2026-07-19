@@ -17,13 +17,19 @@ export type ModuleExport = {
   type: ExternalKind;
 };
 
-export type ExternalKind = "Func" | "Table" | "Memory" | "Global";
+export type ExternalKind = "Func" | "Table" | "Memory" | "Global" | "Tag";
 
 export type ParseResult = {
   modules: ParsedWasmModule[];
 };
 
-const EXTERNAL_KINDS: ExternalKind[] = ["Func", "Table", "Memory", "Global"];
+const EXTERNAL_KINDS: ExternalKind[] = [
+  "Func",
+  "Table",
+  "Memory",
+  "Global",
+  "Tag",
+];
 
 const VALTYPES: Record<number, string> = {
   0x7f: "i32",
@@ -35,6 +41,13 @@ const VALTYPES: Record<number, string> = {
   0x6f: "externref",
 };
 
+/**
+ * `(ref null ht)` and `(ref ht)` from the typed function references / GC
+ * proposals. These are two bytes wide, so consuming only the first one would
+ * silently desync the reader and misreport every following name.
+ */
+const TYPED_REF_PREFIXES = new Set([0x63, 0x64]);
+
 const SECTION_TYPE = 1;
 const SECTION_IMPORT = 2;
 const SECTION_EXPORT = 7;
@@ -42,7 +55,12 @@ const SECTION_CUSTOM = 0;
 
 const FUNCTYPE_FORM = 0x60;
 
-const utf8Decoder = /* @__PURE__ */ new TextDecoder("utf-8", { fatal: true });
+const utf8Decoder = /* @__PURE__ */ new TextDecoder("utf-8", {
+  fatal: true,
+  // A leading U+FEFF is a legal character in a wasm name, not a byte order
+  // mark to be stripped.
+  ignoreBOM: true,
+});
 
 type FuncType = { params: string[]; results: string[] };
 
@@ -52,6 +70,10 @@ type FuncType = { params: string[]; results: string[] };
  * Only the sections needed to describe a module's interface are decoded. Every
  * section is length prefixed, so the rest (code, data, relocations, ...) is
  * skipped without being understood.
+ *
+ * Anything this reader cannot model must raise rather than be guessed at: a
+ * misparse silently reports the wrong import and export names, while an error
+ * is reported by the caller and falls back to a plain `WebAssembly.Module`.
  */
 class WasmReader {
   readonly bytes: Uint8Array;
@@ -73,20 +95,23 @@ class WasmReader {
     return this.bytes[this.pos++];
   }
 
-  /** LEB128 unsigned integer. */
+  /** LEB128 unsigned integer, limited to the 5 bytes a u32 can occupy. */
   varuint(): number {
     let result = 0;
     let shift = 0;
     let byte: number;
     do {
+      if (shift > 28) {
+        throw new Error("varuint32 is too large");
+      }
       byte = this.u8();
       // Avoid `<<`: it wraps to a signed 32-bit result for large section sizes.
       result += (byte & 0x7f) * 2 ** shift;
       shift += 7;
-      if (shift > 35) {
-        throw new Error("varuint32 is too large");
-      }
     } while (byte & 0x80);
+    if (result > 0xff_ff_ff_ff) {
+      throw new Error("varuint32 is too large");
+    }
     return result;
   }
 
@@ -102,8 +127,16 @@ class WasmReader {
     return value;
   }
 
+  /**
+   * Unknown single byte types are tolerated (they are only reported as
+   * metadata), but the multi byte typed reference forms are not, because
+   * guessing their width would desync everything after them.
+   */
   valtype(): string {
     const byte = this.u8();
+    if (TYPED_REF_PREFIXES.has(byte)) {
+      throw new Error(`unsupported typed reference (0x${byte.toString(16)})`);
+    }
     return VALTYPES[byte] || `unknown(0x${byte.toString(16)})`;
   }
 
@@ -116,12 +149,22 @@ class WasmReader {
     return types;
   }
 
-  /** `limits` as used by table and memory descriptors. */
+  /**
+   * `limits` as used by table and memory descriptors. The flag bits select
+   * shared (threads) and 64 bit (memory64) memories; only bit 0 adds a field.
+   */
   limits(): void {
     const flags = this.u8();
     this.varuint(); // min
     if (flags & 0x01) {
       this.varuint(); // max
+    }
+  }
+
+  /** Guard against a vector count that runs past its own section. */
+  assertWithin(end: number): void {
+    if (this.pos > end) {
+      throw new Error("section contents overrun the section length");
     }
   }
 }
@@ -151,21 +194,34 @@ function readSections(reader: WasmReader): Section[] {
   return sections;
 }
 
+/**
+ * Function signatures, used only to annotate imports. Types are best effort:
+ * proposals keep adding forms (struct, array, rec, typed references) and a
+ * missing signature is far less costly than a failed parse.
+ */
 function readTypeSection(reader: WasmReader, end: number): FuncType[] {
   const types: FuncType[] = [];
-  const length = reader.varuint();
-  for (let i = 0; i < length; i++) {
-    if (reader.pos >= end || reader.u8() !== FUNCTYPE_FORM) {
-      // Not a plain function type (proposals add struct/array/rec forms).
-      // Signatures for the remaining indexes stay unknown, names still parse.
-      break;
+  try {
+    const length = reader.varuint();
+    for (let i = 0; i < length; i++) {
+      if (reader.pos >= end || reader.u8() !== FUNCTYPE_FORM) {
+        break;
+      }
+      const type = { params: reader.valtypes(), results: reader.valtypes() };
+      reader.assertWithin(end);
+      types.push(type);
     }
-    types.push({ params: reader.valtypes(), results: reader.valtypes() });
+  } catch {
+    // Signatures for the remaining indexes stay unknown, names still parse.
   }
   return types;
 }
 
-function readImportSection(reader: WasmReader, types: FuncType[]) {
+function readImportSection(
+  reader: WasmReader,
+  end: number,
+  types: FuncType[],
+): ModuleImport[] {
   const imports: ModuleImport[] = [];
   const length = reader.varuint();
   for (let i = 0; i < length; i++) {
@@ -183,7 +239,7 @@ function readImportSection(reader: WasmReader, types: FuncType[]) {
       }
       case 1: {
         // table
-        reader.u8(); // reftype
+        reader.valtype(); // reftype
         reader.limits();
         break;
       }
@@ -194,32 +250,41 @@ function readImportSection(reader: WasmReader, types: FuncType[]) {
       }
       case 3: {
         // global
-        reader.u8(); // valtype
+        reader.valtype();
         reader.u8(); // mutability
+        break;
+      }
+      case 4: {
+        // tag
+        reader.u8(); // attribute
+        reader.varuint(); // typeidx
         break;
       }
       default: {
         throw new Error(`unsupported import kind: ${kind}`);
       }
     }
+    reader.assertWithin(end);
     imports.push(entry);
   }
   return imports;
 }
 
-function readExportSection(reader: WasmReader) {
+function readExportSection(reader: WasmReader, end: number) {
   const exports: (ModuleExport & { index: number })[] = [];
   const length = reader.varuint();
   for (let i = 0; i < length; i++) {
     const name = reader.name();
     const kind = reader.u8();
     const index = reader.varuint();
-    exports.push({
-      name,
-      id: index,
-      index,
-      type: EXTERNAL_KINDS[kind] || "Func",
-    });
+    const type = EXTERNAL_KINDS[kind];
+    if (!type) {
+      // Never guess: an unknown kind would take on the identity of whatever
+      // entity happens to sit at this index.
+      throw new Error(`unsupported export kind: ${kind}`);
+    }
+    reader.assertWithin(end);
+    exports.push({ name, id: index, index, type });
   }
   return exports;
 }
@@ -234,11 +299,16 @@ function readFunctionNames(reader: WasmReader, end: number) {
     const id = reader.u8();
     const size = reader.varuint();
     const subsectionEnd = reader.pos + size;
+    if (subsectionEnd > end) {
+      throw new Error("name subsection overruns the name section");
+    }
     if (id === 1) {
       // function names
       const length = reader.varuint();
       for (let i = 0; i < length; i++) {
-        names.set(reader.varuint(), reader.name());
+        const index = reader.varuint();
+        names.set(index, reader.name());
+        reader.assertWithin(subsectionEnd);
       }
     }
     reader.pos = subsectionEnd;
@@ -276,6 +346,20 @@ function _parseWasm(bytes: Uint8Array): ParseResult {
     throw new Error("invalid magic header (expected `\\0asm`)");
   }
 
+  // Components share the magic but use a different layout, and would otherwise
+  // decode as a core module with no imports or exports at all.
+  if (
+    bytes[4] !== 0x01 ||
+    bytes[5] !== 0x00 ||
+    bytes[6] !== 0x00 ||
+    bytes[7] !== 0x00
+  ) {
+    const version = [...bytes.subarray(4, 8)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join(" ");
+    throw new Error(`unsupported binary version (0x${version})`);
+  }
+
   const sections = readSections(new WasmReader(bytes, 8));
   const at = (section: Section) => new WasmReader(bytes, section.start);
   const find = (id: number, name?: string) =>
@@ -290,11 +374,13 @@ function _parseWasm(bytes: Uint8Array): ParseResult {
 
   const importSection = find(SECTION_IMPORT);
   const imports = importSection
-    ? readImportSection(at(importSection), types)
+    ? readImportSection(at(importSection), importSection.end, types)
     : [];
 
   const exportSection = find(SECTION_EXPORT);
-  const exports = exportSection ? readExportSection(at(exportSection)) : [];
+  const exports = exportSection
+    ? readExportSection(at(exportSection), exportSection.end)
+    : [];
 
   const nameSection = find(SECTION_CUSTOM, "name");
   if (nameSection && exports.length > 0) {

@@ -17,6 +17,11 @@ function compile(wat: string, opts: { debugNames?: boolean } = {}) {
     simd: true,
     reference_types: true,
     bulk_memory: true,
+    threads: true,
+    memory64: true,
+    exceptions: true,
+    multi_memory: true,
+    tail_call: true,
   });
   try {
     return Buffer.from(
@@ -29,6 +34,22 @@ function compile(wat: string, opts: { debugNames?: boolean } = {}) {
 
 const parseWat = (wat: string, opts?: { debugNames?: boolean }) =>
   parseWasm(compile(wat, opts)).modules[0];
+
+const WASM_HEADER = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+
+/** Length prefixed UTF-8 string, as used for names in the binary format. */
+const wasmName = (value: string) => {
+  const bytes = [...Buffer.from(value, "utf8")];
+  return [bytes.length, ...bytes];
+};
+
+const section = (id: number, body: number[]) => [id, body.length, ...body];
+
+/**
+ * Hand assembled binaries, for shapes wabt's `.wat` parser cannot express.
+ */
+const wasmBytes = (...sections: number[][]) =>
+  Buffer.from([...WASM_HEADER, ...sections.flat()]);
 
 describe("parseWasm", () => {
   it("random.wasm", async () => {
@@ -280,6 +301,135 @@ describe("parseWasm", () => {
     expect(exports).toEqual([{ name: "f", id: 0, type: "Func" }]);
   });
 
+  it("agrees with the engine's own view of the module", () => {
+    // Cross checked against WebAssembly.Module rather than against a recorded
+    // snapshot, so this can establish correctness and not just detect drift.
+    const source = compile(`(module
+      (import "env" "seed" (func $seed (result i32)))
+      (import "env" "mem" (memory 1))
+      (import "env" "glob" (global i32))
+      (func $answer (result i32) (i32.const 42))
+      (table $t 1 funcref)
+      (global $g i32 (i32.const 0))
+      (export "answer" (func $answer))
+      (export "t" (table $t))
+      (export "g" (global $g))
+    )`);
+
+    const module = new WebAssembly.Module(source);
+    const { imports, exports } = parseWasm(source).modules[0];
+
+    expect(imports.map((i) => `${i.module}.${i.name}`)).toEqual(
+      WebAssembly.Module.imports(module).map((i) => `${i.module}.${i.name}`),
+    );
+    expect(exports.map((e) => e.name)).toEqual(
+      WebAssembly.Module.exports(module).map((e) => e.name),
+    );
+  });
+
+  describe("proposals", () => {
+    it("parses shared memory imports (threads)", () => {
+      // Flags 0x02/0x03 mark the memory shared; only bit 0 adds a maximum.
+      const { imports } = parseWat(`(module
+        (import "env" "shared" (memory 1 1 shared))
+        (import "env" "last" (func))
+      )`);
+
+      expect(imports.map((i) => i.name)).toEqual(["shared", "last"]);
+    });
+
+    it("parses 64 bit memory imports (memory64)", () => {
+      const { imports } = parseWat(`(module
+        (import "env" "m64" (memory i64 1))
+        (import "env" "m64max" (memory i64 1 2))
+        (import "env" "last" (func))
+      )`);
+
+      expect(imports.map((i) => i.name)).toEqual(["m64", "m64max", "last"]);
+    });
+
+    it("parses tag imports and exports (exceptions)", () => {
+      const { imports, exports } = parseWat(`(module
+        (import "env" "thrown" (tag (param i32)))
+        (func $realFunctionZero (result i32) (i32.const 7))
+        (tag $myTag (param i32))
+        (export "realFunctionZero" (func $realFunctionZero))
+        (export "myTag" (tag $myTag))
+      )`);
+
+      expect(imports.map((i) => i.name)).toEqual(["thrown"]);
+      // The imported tag takes tag index 0, so the defined one is index 1.
+      expect(exports).toEqual([
+        { name: "realFunctionZero", id: 0, type: "Func" },
+        { name: "myTag", id: 1, type: "Tag" },
+      ]);
+    });
+
+    it("keeps tag and function name resolution separate", () => {
+      const { exports } = parseWat(
+        `(module
+          (func $realFunctionZero (result i32) (i32.const 7))
+          (tag $myTag (param i32))
+          (export "realFunctionZero" (func $realFunctionZero))
+          (export "myTag" (tag $myTag))
+        )`,
+        { debugNames: true },
+      );
+
+      expect(exports).toEqual([
+        { name: "realFunctionZero", id: "realFunctionZero", type: "Func" },
+        { name: "myTag", id: 0, type: "Tag" },
+      ]);
+    });
+
+    it("degrades gracefully on unknown type section forms", () => {
+      // A GC struct type (0x5f) in the type section: signatures are lost, but
+      // the import and export names must still be reported.
+      const bytes = wasmBytes(
+        section(1, [0x01, 0x5f, 0x00]),
+        section(2, [0x01, ...wasmName("env"), ...wasmName("fn"), 0x00, 0x00]),
+      );
+
+      const { imports } = parseWasm(bytes).modules[0];
+      expect(imports).toEqual([
+        { module: "env", name: "fn", returnType: undefined, params: undefined },
+      ]);
+    });
+
+    it("rejects typed reference imports instead of misreading them", () => {
+      // `(ref null func)` is two bytes (0x63 0x70). Consuming only the first
+      // would shift every following read and silently rename the imports.
+      const table = wasmBytes(
+        section(1, [0x01, 0x60, 0x00, 0x00]),
+        section(2, [
+          0x01,
+          ...wasmName("env"),
+          ...wasmName("tbl"),
+          0x01,
+          0x63,
+          0x70,
+          0x00,
+          0x00,
+        ]),
+      );
+      expect(() => parseWasm(table)).toThrow(/unsupported typed reference/);
+
+      const global = wasmBytes(
+        section(1, [0x01, 0x60, 0x00, 0x00]),
+        section(2, [
+          0x01,
+          ...wasmName("env"),
+          ...wasmName("glob"),
+          0x03,
+          0x64,
+          0x70,
+          0x00,
+        ]),
+      );
+      expect(() => parseWasm(global)).toThrow(/unsupported typed reference/);
+    });
+  });
+
   describe("errors", () => {
     it("rejects a non-wasm buffer", () => {
       expect(() => parseWasm(Buffer.from("not wasm at all"))).toThrow(
@@ -301,6 +451,69 @@ describe("parseWasm", () => {
       expect(() => parseWasm(source.subarray(0, -5))).toThrow(
         /exceeds the end of the binary/,
       );
+    });
+
+    it("rejects a component instead of reporting it as empty", () => {
+      // Components share the magic but use layer 1; decoding one as a core
+      // module yields no imports or exports and no error at all.
+      const component = Buffer.from([
+        0x00, 0x61, 0x73, 0x6d, 0x0d, 0x00, 0x01, 0x00,
+      ]);
+
+      expect(() => parseWasm(component)).toThrow(
+        /unsupported binary version \(0x0d 00 01 00\)/,
+      );
+    });
+
+    it("rejects an export kind it cannot identify", () => {
+      const bytes = wasmBytes(
+        section(7, [0x01, ...wasmName("mystery"), 0x09, 0x00]),
+      );
+
+      expect(() => parseWasm(bytes)).toThrow(/unsupported export kind: 9/);
+    });
+
+    it("rejects a vector count that overruns its section", () => {
+      // The section length is authoritative; a lying count must not be
+      // allowed to read entries out of the following section.
+      const bytes = wasmBytes(
+        section(7, [0x05, ...wasmName("only"), 0x00, 0x00]),
+        section(0, [...wasmName("padding"), 0x01, 0x02, 0x03]),
+      );
+
+      expect(() => parseWasm(bytes)).toThrow();
+    });
+
+    it("rejects a name subsection that overruns the name section", () => {
+      const bytes = wasmBytes(
+        section(1, [0x01, 0x60, 0x00, 0x00]),
+        section(3, [0x01, 0x00]),
+        section(7, [0x01, ...wasmName("f"), 0x00, 0x00]),
+        section(0, [...wasmName("name"), 0x01, 0x7f, 0x01, 0x00]),
+        section(0, [...wasmName("after"), 0xde, 0xad]),
+      );
+
+      expect(() => parseWasm(bytes)).toThrow(/name subsection overruns/);
+    });
+
+    it("preserves a leading U+FEFF in names", () => {
+      // U+FEFF is a legal character in a wasm name, not a byte order mark.
+      const bytes = wasmBytes(
+        section(1, [0x01, 0x60, 0x00, 0x00]),
+        section(2, [0x01, ...wasmName("﻿env"), ...wasmName("﻿fn"), 0x00, 0x00]),
+      );
+
+      const { imports } = parseWasm(bytes).modules[0];
+      expect(imports[0]).toMatchObject({
+        module: "﻿env",
+        name: "﻿fn",
+      });
+    });
+
+    it("rejects an overlong LEB128 integer", () => {
+      const bytes = wasmBytes([0x07, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]);
+
+      expect(() => parseWasm(bytes)).toThrow(/varuint32 is too large/);
     });
 
     it("includes the module name and preserves the cause", () => {
