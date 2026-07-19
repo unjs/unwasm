@@ -2,8 +2,8 @@ import { promises as fs, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { basename } from "pathe";
 import MagicString from "magic-string";
-import type { RenderedChunk, Plugin } from "rollup";
 import { parseWasm } from "../tools";
+import type { RawSourceMap, RenderedChunk, UnwasmPlugin } from "./types";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
 import { getPluginUtils } from "./runtime/utils";
 import {
@@ -17,10 +17,11 @@ import {
 } from "./shared";
 
 export type { UnwasmPluginOptions } from "./shared";
+export type * from "./types";
 
 const WASM_ID_RE = /\.wasm(?:\?.*)?$/i;
 
-export function unwasm(opts: UnwasmPluginOptions): Plugin {
+export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
   const assets: Record<string, WasmAsset> = Object.create(null);
 
   type ParseCacheEntry = Pick<WasmAsset, "imports" | "exports">;
@@ -244,7 +245,8 @@ export function unwasm(opts: UnwasmPluginOptions): Plugin {
       if (s.hasChanged()) {
         return {
           code: s.toString(),
-          map: s.generateMap({ includeContent: true }),
+          // `includeContent: true` guarantees non-null `sourcesContent` entries
+          map: s.generateMap({ includeContent: true }) as RawSourceMap,
         };
       }
     },
