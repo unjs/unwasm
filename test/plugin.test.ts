@@ -7,7 +7,7 @@ import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
 import { rollup } from "rollup";
 import { build as viteBuild } from "vite";
 import { UnwasmPluginOptions, unwasm } from "../src/plugin";
-import { dirname } from "pathe";
+import { dirname } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
