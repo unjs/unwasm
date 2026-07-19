@@ -1,5 +1,56 @@
 # Changelog
 
+## v0.6.0
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.5.3...v0.6.0)
+
+### 🚀 Enhancements
+
+- **parser:** Preserve the kind of each import ([#106](https://github.com/unjs/unwasm/pull/106))
+
+### 🩹 Fixes
+
+- **parser:** Validate function name bounds before applying them ([7bea530](https://github.com/unjs/unwasm/commit/7bea530))
+
+### 💅 Refactors
+
+- **tools:** ⚠️  Replace webassemblyjs with a built-in wasm parser ([#104](https://github.com/unjs/unwasm/pull/104))
+- Inline `readNearestPackageJSON` impl ([9901856](https://github.com/unjs/unwasm/commit/9901856))
+- Inline knitwork utils ([5665f9f](https://github.com/unjs/unwasm/commit/5665f9f))
+- Use `node:fs` ([b956499](https://github.com/unjs/unwasm/commit/b956499))
+
+### 📦 Build
+
+- Move mlly to devDependencies ([2445529](https://github.com/unjs/unwasm/commit/2445529))
+- Stop packaging examples ([df640c2](https://github.com/unjs/unwasm/commit/df640c2))
+
+### 🌊 Types
+
+- Standalone `Plugin` types ([210f67e](https://github.com/unjs/unwasm/commit/210f67e))
+
+### 🏡 Chore
+
+- Update dependencies ([1dc1638](https://github.com/unjs/unwasm/commit/1dc1638))
+- Update tsconfig ([518c12f](https://github.com/unjs/unwasm/commit/518c12f))
+- Update tsconfig ([f0477e0](https://github.com/unjs/unwasm/commit/f0477e0))
+- Apply automated updates ([a92a2a3](https://github.com/unjs/unwasm/commit/a92a2a3))
+- Lint work oxlint and oxfmt ([3e51361](https://github.com/unjs/unwasm/commit/3e51361))
+- Apply automated updates ([a4d24a3](https://github.com/unjs/unwasm/commit/a4d24a3))
+
+### ✅ Tests
+
+- Add rolldown to plugin build suite ([7ec95cf](https://github.com/unjs/unwasm/commit/7ec95cf))
+- Fix implicit any in plugin build suite ([51ad712](https://github.com/unjs/unwasm/commit/51ad712))
+
+#### ⚠️ Breaking Changes
+
+- **tools:** ⚠️  Replace webassemblyjs with a built-in wasm parser ([#104](https://github.com/unjs/unwasm/pull/104))
+
+### ❤️ Contributors
+
+- Pi0x <x@pi0.io>
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v0.5.3
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.5.2...v0.5.3)
