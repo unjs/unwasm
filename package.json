@@ -21,7 +21,7 @@
     "lint": "oxlint . && oxfmt --check src test",
     "fmt": "oxlint . --fix && oxfmt src test",
     "prepack": "pnpm build",
-    "release": "pnpm test && pnpm build && changelogen --release --push --publish",
+    "release": "pnpm test && pnpm build && changelogen --release --push && npm publish",
     "test": "pnpm lint && pnpm test:types && vitest run --coverage",
     "test:types": "tsgo --noEmit --skipLibCheck"
   },
