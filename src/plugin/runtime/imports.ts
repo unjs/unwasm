@@ -2,8 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolveModulePath } from "exsolve";
 import { dirname, join } from "node:path";
 
-import { WasmAsset, UnwasmPluginOptions, UMWASM_HELPERS_ID } from "../shared";
-import type { ExternalKind } from "../../tools";
+import { WasmAsset, UnwasmPluginOptions } from "../shared";
 
 interface PackageJSON {
   imports?: Record<string, string | Record<string, string>>;
@@ -14,7 +13,6 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
   if (importNames.length === 0) {
     return {
       code: "const _imports = { /* no imports */ }",
-      check: "",
       resolved: true,
     };
   }
@@ -26,12 +24,9 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
 
   const imports: string[] = [];
   const importsObject: Record<string, Record<string, string>> = {};
-  // `[module, name, kind, valueType?]` entries, checked against the values the
-  // JS modules actually export before the module is instantiated.
-  const expected: ([string, string, ExternalKind] | [string, string, ExternalKind, string])[] = [];
 
   for (const moduleName of importNames) {
-    const moduleImports = asset.imports[moduleName];
+    const importNames = asset.imports[moduleName];
 
     // TODO: handle importAlias as object (https://nodejs.org/api/packages.html#imports)
     const importAlias = pkg.imports?.[moduleName] || pkg.imports?.[`#${moduleName}`];
@@ -43,25 +38,14 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
     const importName = "_imports_" + safeVariableName(moduleName);
     imports.push(`import * as ${importName} from ${JSON.stringify(resolved)};`);
     importsObject[moduleName] = Object.fromEntries(
-      moduleImports.map(({ name }) => [name, `${importName}[${JSON.stringify(name)}]`]),
+      importNames.map((name) => [name, `${importName}[${JSON.stringify(name)}]`]),
     );
-    for (const { name, type, valueType } of moduleImports) {
-      expected.push(valueType ? [moduleName, name, type, valueType] : [moduleName, name, type]);
-    }
   }
 
-  const code = [
-    `import { checkImports } from "${UMWASM_HELPERS_ID}";`,
-    imports.join("\n"),
-    "",
-    `const _imports = ${genObject(importsObject)}`,
-    "",
-    `const _expectedImports = ${JSON.stringify(expected)};`,
-  ].join("\n");
+  const code = `${imports.join("\n")}\n\nconst _imports = ${genObject(importsObject)}`;
 
   return {
     code,
-    check: `checkImports(imports, _expectedImports, ${JSON.stringify(asset.name)});`,
     resolved,
   };
 }

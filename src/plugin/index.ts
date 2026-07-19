@@ -14,7 +14,6 @@ import {
   UNWASM_EXTERNAL_RE,
   UnwasmPluginOptions,
   WasmAsset,
-  WasmImport,
 } from "./shared";
 
 export type { UnwasmPluginOptions } from "./shared";
@@ -31,7 +30,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
     if (_parseCache[name]) {
       return _parseCache[name];
     }
-    const imports: Record<string, WasmImport[]> = Object.create(null);
+    const imports: Record<string, string[]> = Object.create(null);
     const exports: string[] = [];
 
     try {
@@ -42,11 +41,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
           if (!imports[imp.module]) {
             imports[imp.module] = [];
           }
-          imports[imp.module].push({
-            name: imp.name,
-            type: imp.type,
-            valueType: imp.valueType,
-          });
+          imports[imp.module].push(imp.name);
         }
       }
     } catch (error) {

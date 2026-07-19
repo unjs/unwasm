@@ -11,8 +11,8 @@ export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOpti
   const autoImports = await getWasmImports(asset, opts);
 
   const instantiateCode: string = opts.esmImport
-    ? getESMImportInstantiate(asset, autoImports.code, autoImports.check)
-    : getBase64Instantiate(asset, autoImports.code, autoImports.check);
+    ? getESMImportInstantiate(asset, autoImports.code)
+    : getBase64Instantiate(asset, autoImports.code);
 
   return opts.lazy !== true && autoImports.resolved
     ? getExports(asset, instantiateCode)
@@ -35,12 +35,11 @@ export default _mod;
 }
 
 /** Get the code to instantiate module with direct import */
-function getESMImportInstantiate(asset: WasmAsset, importsCode: string, checkCode: string) {
+function getESMImportInstantiate(asset: WasmAsset, importsCode: string) {
   return /* js */ `
 ${importsCode}
 
 async function _instantiate(imports = _imports) {
-${checkCode}
 const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
 return WebAssembly.instantiate(_mod, imports)
 }
@@ -48,16 +47,13 @@ return WebAssembly.instantiate(_mod, imports)
 }
 
 /** Get the code to instantiate module from inlined base64 data */
-function getBase64Instantiate(asset: WasmAsset, importsCode: string, checkCode: string) {
+function getBase64Instantiate(asset: WasmAsset, importsCode: string) {
   return /* js */ `
 import { base64ToUint8Array } from "${UMWASM_HELPERS_ID}";
 
 ${importsCode}
 
-// \`async\` so a rejected import check is reported the same way an instantiation
-// failure is, rather than throwing out of the caller synchronously.
-async function _instantiate(imports = _imports) {
-  ${checkCode}
+function _instantiate(imports = _imports) {
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
   return WebAssembly.instantiate(_data, imports)  }
   `;

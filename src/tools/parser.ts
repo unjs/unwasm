@@ -10,15 +10,9 @@ export type ModuleImport = {
   /**
    * What the module expects to be handed for this import. Only `Func` accepts a
    * plain JavaScript value; the rest require the matching `WebAssembly.*`
-   * object, so consumers need the kind to say anything useful about a mismatch.
+   * object, which is the distinction a caller most often needs.
    */
   type: ExternalKind;
-  /**
-   * For `Global` imports, the type of the value held. A reference typed global
-   * accepts any JS value, so consumers cannot say anything about one without
-   * knowing this.
-   */
-  valueType?: string;
   returnType?: string;
   params?: { id?: string; type: string }[];
 };
@@ -267,7 +261,7 @@ function readImportSection(reader: WasmReader, end: number, types: FuncType[]): 
       }
       case 3: {
         // global
-        entry.valueType = reader.valtype();
+        reader.valtype();
         reader.u8(); // mutability
         break;
       }

@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import type { ExternalKind } from "../tools";
 
 export interface UnwasmPluginOptions {
   /**
@@ -26,19 +25,11 @@ export interface UnwasmPluginOptions {
   silent?: boolean;
 }
 
-/** A single entry the wasm module expects from one imported JS module. */
-export type WasmImport = {
-  name: string;
-  type: ExternalKind;
-  /** Only set for `Global` imports; see `ModuleImport.valueType`. */
-  valueType?: string;
-};
-
 export type WasmAsset = {
   id: string;
   name: string;
   source: Buffer;
-  imports: Record<string, WasmImport[]>;
+  imports: Record<string, string[]>;
   exports: string[];
 };
 
