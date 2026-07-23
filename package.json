@@ -52,5 +52,5 @@
     "vitest": "^4.1.10",
     "wabt": "^1.0.39"
   },
-  "packageManager": "pnpm@11.15.0"
+  "packageManager": "pnpm@11.15.1"
 }
