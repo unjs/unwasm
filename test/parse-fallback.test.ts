@@ -1,17 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { unwasm, type UnwasmPluginOptions } from "../src/plugin";
+import { parseWasm } from "../src/tools/parser";
+
+const uleb128 = (value: number): number[] => {
+  const bytes: number[] = [];
+  do {
+    let byte = value & 0x7f;
+    value >>>= 7;
+    if (value) {
+      byte |= 0x80;
+    }
+    bytes.push(byte);
+  } while (value);
+  return bytes;
+};
+
+const section = (id: number, contents: number[]) => [id, ...uleb128(contents.length), ...contents];
+const name = (value: string) => [value.length, ...Buffer.from(value, "utf8")];
 
 /**
- * A module the reader cannot decode, but which the engine may still accept.
+ * A module the reader cannot decode, but which the engine accepts.
  *
- * The import section declares one entry with kind `0x09`. Import kinds are
- * open ended (each proposal adds one), and the descriptor that follows is kind
- * specific, so an unknown kind leaves no way to find the next import — the
- * reader has to give up rather than guess.
+ * The imported global is typed `(ref null func)`, a typed reference from the
+ * function references proposal. Its `0x63` prefix is followed by a heap type
+ * whose width the reader cannot know in general, so guessing it would desync
+ * every import after it — the reader has to give up rather than guess.
  */
-function unparsableWasm(): Buffer {
-  const section = (id: number, contents: number[]) => [id, contents.length, ...contents];
-  return Buffer.from([
+function unparsableWasm(): Uint8Array<ArrayBuffer> {
+  return new Uint8Array([
     // "\0asm", version 1
     0x00,
     0x61,
@@ -21,12 +37,12 @@ function unparsableWasm(): Buffer {
     0x00,
     0x00,
     0x00,
-    // type: [() -> ()]
-    ...section(1, [0x01, 0x60, 0x00, 0x00]),
-    // import: "env" "f", kind 0x09
-    ...section(2, [0x01, 0x03, 0x65, 0x6e, 0x76, 0x01, 0x66, 0x09]),
-    // export: "a" (func 0)
-    ...section(7, [0x01, 0x01, 0x61, 0x00, 0x00]),
+    // import: "env" "g", global (ref null func), immutable
+    ...section(2, [0x01, ...name("env"), ...name("g"), 0x03, 0x63, 0x70, 0x00]),
+    // memory: one page, so the module has something to export
+    ...section(5, [0x01, 0x00, 0x01]),
+    // export: "m" (memory 0)
+    ...section(7, [0x01, ...name("m"), 0x02, 0x00]),
   ]);
 }
 
@@ -47,26 +63,48 @@ function createTransform(opts: UnwasmPluginOptions = {}) {
   };
   return {
     warnings,
-    transform: (source: Buffer) => handler.call(ctx, source.toString("binary"), ID),
+    transform: (source: Uint8Array) =>
+      handler.call(ctx, Buffer.from(source).toString("binary"), ID),
   };
 }
 
+/** Run the inlined base64 payload of a generated module binding. */
+function compileGeneratedModule(code: string): WebAssembly.Module {
+  const [, base64] = /base64ToUint8Array\("([^"]*)"\)/.exec(code) || [];
+  expect(base64).toBeDefined();
+  return new WebAssembly.Module(new Uint8Array(Buffer.from(base64, "base64")));
+}
+
 describe("unparsable binaries", () => {
+  it("is a binary the engine accepts and the reader rejects", () => {
+    // Both halves of the premise, so this stays a fallback test rather than
+    // silently becoming a test about a binary nobody can load.
+    const source = unparsableWasm();
+    expect(WebAssembly.validate(source)).toBe(true);
+    expect(WebAssembly.Module.imports(new WebAssembly.Module(source))).toEqual([
+      { module: "env", name: "g", kind: "global" },
+    ]);
+    expect(() => parseWasm(source)).toThrow(/typed reference/);
+  });
+
   it("falls back to module mode instead of binding to an empty interface", async () => {
     const { transform, warnings } = createTransform();
     const { code } = await transform(unparsableWasm());
 
-    // Module mode hands the binary to the engine, which knows the kinds the
-    // reader does not.
+    // Module mode hands the binary to the engine, which knows the types the
+    // reader does not, so the generated binding still compiles.
     expect(code).toContain("new WebAssembly.Module");
     expect(code).toContain("export default _mod");
+    expect(WebAssembly.Module.exports(compileGeneratedModule(code))).toEqual([
+      { name: "m", kind: "memory" },
+    ]);
 
     // The failing path: instantiating with an interface derived from a parse
     // that never succeeded. The module declares an import, so an empty
     // `_imports` throws at instantiation — at module scope, before the app
     // serves anything.
-    expect(code).not.toContain("no imports");
     expect(code).not.toContain("_instantiate");
+    await expect(WebAssembly.instantiate(unparsableWasm(), {})).rejects.toThrow();
 
     expect(warnings).toHaveLength(1);
     expect(warnings[0].message).toContain("module mode");
