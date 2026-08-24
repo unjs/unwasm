@@ -33,19 +33,19 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
     const imports: Record<string, string[]> = Object.create(null);
     const exports: string[] = [];
 
-    try {
-      const parsed = parseWasm(source, { name });
-      for (const mod of parsed.modules) {
-        exports.push(...mod.exports.map((e) => e.name));
-        for (const imp of mod.imports) {
-          if (!imports[imp.module]) {
-            imports[imp.module] = [];
-          }
-          imports[imp.module].push(imp.name);
+    // Let the caller handle a failure: an empty interface is indistinguishable
+    // from a module that genuinely has none, and binding to it would emit an
+    // instantiation that cannot succeed. Nothing is cached in that case, so a
+    // later parse of the same asset is not answered from a failed one.
+    const parsed = parseWasm(source, { name });
+    for (const mod of parsed.modules) {
+      exports.push(...mod.exports.map((e) => e.name));
+      for (const imp of mod.imports) {
+        if (!imports[imp.module]) {
+          imports[imp.module] = [];
         }
+        imports[imp.module].push(imp.name);
       }
-    } catch (error) {
-      console.warn(`[unwasm] Failed to parse WASM module ${name}:`, error);
     }
 
     _parseCache[name] = {
