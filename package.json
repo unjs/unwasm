@@ -27,13 +27,13 @@
   },
   "dependencies": {
     "exsolve": "^1.1.3",
-    "magic-string": "^1.4.2"
+    "magic-string": "^1.4.3"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/node": "^26.6.4",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^5",
     "assemblyscript": "^0.28.20",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
@@ -44,12 +44,12 @@
     "mlly": "^1.8.2",
     "obuild": "^0.4.43",
     "oxfmt": ">=0.71.0",
-    "oxlint": "^1.86.0",
+    "oxlint": "^1.87.0",
     "rolldown": "^1.2.12",
     "rollup": "^4.64.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.2",
-    "vitest": "^4.1.10",
+    "vite": "^8.3.3",
+    "vitest": "^5",
     "wabt": "^1.0.39"
   },
   "packageManager": "pnpm@11.28.4"
