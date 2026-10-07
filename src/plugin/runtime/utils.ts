@@ -10,6 +10,9 @@ export function getExports(input) {
 }
 
 export function base64ToUint8Array(str) {
+  if (typeof Uint8Array.fromBase64 === "function") {
+    return Uint8Array.fromBase64(str);
+  }
   const data = atob(str);
   const size = data.length;
   const bytes = new Uint8Array(size);
