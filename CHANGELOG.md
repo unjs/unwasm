@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.6.1
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.6.0...v0.6.1)
+
+### 🔥 Performance
+
+- Use `Uint8Array.fromBase64` if avaliable ([#117](https://github.com/unjs/unwasm/pull/117))
+
+### 🩹 Fixes
+
+- **plugin:** Fall back to module mode when a binary cannot be parsed ([#112](https://github.com/unjs/unwasm/pull/112))
+
+### 🏡 Chore
+
+- Update release script ([b7a0a38](https://github.com/unjs/unwasm/commit/b7a0a38))
+- Improve readme ([d97383b](https://github.com/unjs/unwasm/commit/d97383b))
+- Update deps ([4bbf032](https://github.com/unjs/unwasm/commit/4bbf032))
+- Update release script ([cc629ab](https://github.com/unjs/unwasm/commit/cc629ab))
+
+### ❤️ Contributors
+
+- Pooya Parsa <pooya@pi0.io>
+- Mochammad Fadhlan Al-Ghiffari
+- Jeremy Nguyen <nguyen.jeremyt@gmail.com>
+
 ## v0.6.0
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.5.3...v0.6.0)
