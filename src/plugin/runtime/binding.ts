@@ -10,9 +10,11 @@ import { getWasmImports } from "./imports";
 export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
   const autoImports = await getWasmImports(asset, opts);
 
-  const instantiateCode: string = opts.esmImport
-    ? getESMImportInstantiate(asset, autoImports.code)
-    : getBase64Instantiate(asset, autoImports.code);
+  const instantiateCode: string = opts.sourcePhaseImport
+    ? getSourcePhaseImportInstantiate(asset, autoImports.code)
+    : opts.esmImport
+      ? getESMImportInstantiate(asset, autoImports.code)
+      : getBase64Instantiate(asset, autoImports.code);
 
   return opts.lazy !== true && autoImports.resolved
     ? getExports(asset, instantiateCode)
@@ -21,9 +23,9 @@ export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOpti
 
 /** Generate WebAssembly.Module binding for compatibility */
 export function getWasmModuleBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
-  return opts.esmImport
+  return opts.esmImport || opts.sourcePhaseImport
     ? /* js */ `
-const _mod = ${opts.lazy === true ? "" : `await`} import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
+const _mod = ${opts.lazy === true ? "" : `await`} ${opts.sourcePhaseImport ? "import.source" : "import"}("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
 export default _mod;
   `
     : /* js */ `
@@ -41,6 +43,18 @@ ${importsCode}
 
 async function _instantiate(imports = _imports) {
 const _mod = await import("${UNWASM_EXTERNAL_PREFIX}${asset.name}").then(r => r.default || r);
+return WebAssembly.instantiate(_mod, imports)
+}
+  `;
+}
+
+/** Get the code to instantiate module with source phase import (`import.source`) */
+function getSourcePhaseImportInstantiate(asset: WasmAsset, importsCode: string) {
+  return /* js */ `
+${importsCode}
+
+async function _instantiate(imports = _imports) {
+const _mod = await import.source("${UNWASM_EXTERNAL_PREFIX}${asset.name}");
 return WebAssembly.instantiate(_mod, imports)
 }
   `;

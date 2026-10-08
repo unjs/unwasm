@@ -1,6 +1,9 @@
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
+import { dirname } from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
@@ -8,7 +11,6 @@ import { rollup } from "rollup";
 import { rolldown } from "rolldown";
 import { build as viteBuild } from "vite";
 import { UnwasmPluginOptions, unwasm } from "../src/plugin";
-import { dirname } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -46,6 +48,23 @@ for (const { builder, buildFn } of builds) {
 
       const resText = await _evalCloudflare(name).then((r) => r.text());
       expect(resText).toBe("OK");
+    });
+
+    it("sourcePhaseImport", async () => {
+      const name = `${builder}-source-phase-import`;
+      const { output } = await buildFn("fixture/dynamic-import.mjs", name, {
+        sourcePhaseImport: true,
+      });
+
+      const esmImport = (output as any[])
+        .map((o) => ("code" in o ? o.code.match(/["'](\.\/wasm\/.+wasm)["']/)?.[1] : undefined))
+        .find(Boolean);
+      expect(esmImport).match(/\.\/wasm\/\w+-[\da-f]+\.wasm/);
+      expect(existsSync(r(`.tmp/${name}/${esmImport}`))).toBe(true);
+
+      // Evaluate in a Node.js child_process (Vitest transforms mangle `import.source`)
+      const stdout = await _evalNode(name);
+      expect(stdout).toBe("OK");
     });
 
     it("module", async () => {
@@ -148,4 +167,16 @@ export default {
   const res = await mf.dispatchFetch("http://localhost");
   await mf.dispose();
   return res;
+}
+
+async function _evalNode(name: string) {
+  const { stdout } = await promisify(execFile)(process.execPath, [
+    "--input-type=module",
+    "-e",
+    `
+import { test } from ${JSON.stringify(new URL(`.tmp/${name}/index.mjs`, import.meta.url))};
+console.log(await test());
+`,
+  ]);
+  return stdout.trim();
 }

@@ -9,6 +9,13 @@ export interface UnwasmPluginOptions {
   esmImport?: boolean;
 
   /**
+   * Directly import the `.wasm` files using source phase imports.
+   *
+   * @default false
+   */
+  sourcePhaseImport?: boolean;
+
+  /**
    * Avoid using top level await and always use a proxy.
    *
    * Useful for compatibility with environments that don't support top level await.
