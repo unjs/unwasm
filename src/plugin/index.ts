@@ -101,7 +101,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
       },
     },
     generateBundle() {
-      if (opts.esmImport) {
+      if (opts.esmImport || opts.sourcePhaseImport) {
         for (const asset of Object.values(assets)) {
           this.emitFile({
             type: "asset",
@@ -196,7 +196,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
       },
     },
     renderChunk(code: string, chunk: RenderedChunk) {
-      if (!opts.esmImport) {
+      if (!opts.esmImport && !opts.sourcePhaseImport) {
         return;
       }
 
