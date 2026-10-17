@@ -31,9 +31,9 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
-    "@vitest/coverage-v8": "^5",
+    "@vitest/coverage-v8": "^5.0.4",
     "assemblyscript": "^0.28.20",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
@@ -42,15 +42,15 @@
     "jiti": "^2.7.0",
     "miniflare": "^4.20260730.0",
     "mlly": "^1.8.2",
-    "obuild": "^0.4.43",
-    "oxfmt": ">=0.71.0",
-    "oxlint": "^1.87.0",
-    "rolldown": "^1.2.12",
-    "rollup": "^4.64.0",
+    "obuild": "^0.4.45",
+    "oxfmt": ">=0.73.0",
+    "oxlint": "^1.88.0",
+    "rolldown": "^1.2.14",
+    "rollup": "^4.64.6",
     "typescript": "^7.0.2",
-    "vite": "^8.3.3",
-    "vitest": "^5",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4",
     "wabt": "^1.0.39"
   },
-  "packageManager": "pnpm@11.28.4"
+  "packageManager": "pnpm@11.28.5"
 }
