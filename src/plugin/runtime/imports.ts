@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { resolveModulePath } from "exsolve";
 import { dirname, join } from "node:path";
 
@@ -8,7 +8,7 @@ interface PackageJSON {
   imports?: Record<string, string | Record<string, string>>;
 }
 
-export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOptions) {
+export function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOptions) {
   const importNames = Object.keys(asset.imports || {});
   if (importNames.length === 0) {
     return {
@@ -18,7 +18,7 @@ export async function getWasmImports(asset: WasmAsset, _opts: UnwasmPluginOption
   }
 
   // Try to resolve from nearest package.json
-  const pkg = await readNearestPackageJSON(asset.id);
+  const pkg = readNearestPackageJSON(asset.id);
 
   const resolved = true;
 
@@ -73,11 +73,14 @@ function genObject(object: Record<string, string | Record<string, string>>, inde
 
 // Read the nearest `package.json` by walking up from `from`.
 // Returns an empty object if none is found.
-async function readNearestPackageJSON(from: string): Promise<PackageJSON> {
+function readNearestPackageJSON(from: string): PackageJSON {
   let dir = dirname(from);
   let lastDir = "";
   while (dir !== lastDir) {
-    const contents = await readFile(join(dir, "package.json"), "utf8").catch(() => undefined);
+    let contents: string | undefined;
+    try {
+      contents = readFileSync(join(dir, "package.json"), "utf8");
+    } catch {}
     if (contents !== undefined) {
       return JSON.parse(contents) as PackageJSON;
     }

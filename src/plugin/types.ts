@@ -56,7 +56,8 @@ export interface ResolvedId {
 export interface PluginContext {
   addWatchFile: (id: string) => void;
   emitFile: (file: EmittedAsset) => string;
-  resolve: (source: string, importer?: string) => Promise<ResolvedId | null | undefined>;
+  // Bundlers return a Promise, env-runner's self runner returns the result directly
+  resolve: (source: string, importer?: string) => Awaitable<ResolvedId | null | undefined>;
   warn: (log: Log | string) => void;
 }
 

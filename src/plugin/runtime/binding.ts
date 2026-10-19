@@ -7,8 +7,8 @@ import {
 import { getWasmImports } from "./imports";
 
 /* Generate the binding code for the wasm module */
-export async function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
-  const autoImports = await getWasmImports(asset, opts);
+export function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
+  const autoImports = getWasmImports(asset, opts);
 
   const instantiateCode: string = opts.sourcePhaseImport
     ? getSourcePhaseImportInstantiate(asset, autoImports.code)
