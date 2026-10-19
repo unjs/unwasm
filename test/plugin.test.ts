@@ -79,6 +79,32 @@ for (const { builder, buildFn } of builds) {
   });
 }
 
+describe("plugin:sync", () => {
+  // Hosts running hooks inside sync loader hooks (e.g. env-runner's self
+  // runner) return `this.resolve()` results directly and can't await hooks.
+  it("hooks do not return promises with a sync resolve", () => {
+    const plugin = unwasm({});
+    const wasmPath = r("../examples/add-esmi.wasm");
+    const ctx = {
+      resolve: (id: string) => ({ id: "file://" + id, external: false, meta: {} }),
+      addWatchFile: () => {},
+      emitFile: () => "",
+      warn: () => {},
+    };
+
+    const resolved = plugin.resolveId.handler.call(ctx, wasmPath, undefined);
+    expect(resolved).not.toBeInstanceOf(Promise);
+    expect(resolved).toMatchObject({ id: wasmPath, external: false });
+
+    const loaded = plugin.load.handler.call(ctx, wasmPath);
+    expect(typeof loaded).toBe("string");
+
+    const transformed = plugin.transform.handler.call(ctx, loaded as string, wasmPath);
+    expect(transformed).not.toBeInstanceOf(Promise);
+    expect((transformed as { code: string }).code).toContain("export const addImported");
+  });
+});
+
 // --- Utils ---
 
 async function _rollupBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
