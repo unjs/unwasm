@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.6.2
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.6.1...v0.6.2)
+
+### 🚀 Enhancements
+
+- **plugin:** Synchronous plugin hooks ([6fb5295](https://github.com/unjs/unwasm/commit/6fb5295))
+
+### 🏡 Chore
+
+- Update deps ([d091a2d](https://github.com/unjs/unwasm/commit/d091a2d))
+
+### ❤️ Contributors
+
+- Pooya Parsa <pooya@pi0.io>
+
 ## v0.6.1
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.6.0...v0.6.1)
