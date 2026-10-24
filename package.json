@@ -43,14 +43,14 @@
     "miniflare": "^4.20260730.0",
     "mlly": "^1.8.2",
     "obuild": "^0.4.45",
-    "oxfmt": ">=0.73.0",
-    "oxlint": "^1.88.0",
-    "rolldown": "^1.2.14",
-    "rollup": "^4.64.9",
+    "oxfmt": ">=0.74.0",
+    "oxlint": "^1.89.0",
+    "rolldown": "^1.2.15",
+    "rollup": "^4.64.12",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5",
     "wabt": "^1.0.39"
   },
-  "packageManager": "pnpm@12.14.0"
+  "packageManager": "pnpm@12.15.0"
 }
