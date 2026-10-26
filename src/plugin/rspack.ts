@@ -151,16 +151,20 @@ export class UnwasmRspackPlugin {
 
       const asset: WasmAsset = { name, id: resolved, source, ...parsed };
 
-      const code = rewriteIds(
-        isModule
-          ? await getWasmModuleBinding(asset, opts)
-          : await getWasmESMBinding(asset, opts).catch(async (error) => {
-              onWarn(
-                `Failed to load the WebAssembly module "${resolved}"; falling back to module mode: ${(error as Error).message}`,
-              );
-              return getWasmModuleBinding(asset, opts);
-            }),
-      );
+      let binding: string;
+      if (isModule) {
+        binding = getWasmModuleBinding(asset, opts);
+      } else {
+        try {
+          binding = getWasmESMBinding(asset, opts);
+        } catch (error) {
+          onWarn(
+            `Failed to load the WebAssembly module "${resolved}"; falling back to module mode: ${(error as Error).message}`,
+          );
+          binding = getWasmModuleBinding(asset, opts);
+        }
+      }
+      const code = rewriteIds(binding);
 
       // Generated bindings sit next to the binary so that relative imports and
       // `node_modules` lookups from within them keep resolving. The request mode

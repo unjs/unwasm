@@ -1,9 +1,9 @@
-import { promises as fs, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { basename } from "node:path";
 import MagicString from "magic-string";
 import { parseWasm } from "../tools";
-import type { RawSourceMap, RenderedChunk, UnwasmPlugin } from "./types";
+import type { RawSourceMap, RenderedChunk, ResolvedId, UnwasmPlugin } from "./types";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
 import { getPluginUtils } from "./runtime/utils";
 import {
@@ -33,19 +33,19 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
     const imports: Record<string, string[]> = Object.create(null);
     const exports: string[] = [];
 
-    try {
-      const parsed = parseWasm(source, { name });
-      for (const mod of parsed.modules) {
-        exports.push(...mod.exports.map((e) => e.name));
-        for (const imp of mod.imports) {
-          if (!imports[imp.module]) {
-            imports[imp.module] = [];
-          }
-          imports[imp.module].push(imp.name);
+    // Let the caller handle a failure: an empty interface is indistinguishable
+    // from a module that genuinely has none, and binding to it would emit an
+    // instantiation that cannot succeed. Nothing is cached in that case, so a
+    // later parse of the same asset is not answered from a failed one.
+    const parsed = parseWasm(source, { name });
+    for (const mod of parsed.modules) {
+      exports.push(...mod.exports.map((e) => e.name));
+      for (const imp of mod.imports) {
+        if (!imports[imp.module]) {
+          imports[imp.module] = [];
         }
+        imports[imp.module].push(imp.name);
       }
-    } catch (error) {
-      console.warn(`[unwasm] Failed to parse WASM module ${name}:`, error);
     }
 
     _parseCache[name] = {
@@ -66,7 +66,9 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
           WASM_ID_RE,
         ],
       },
-      async handler(id, importer) {
+      // Hooks are kept sync so they can run inside sync loader hooks
+      // (e.g. env-runner's self runner, using `module.registerHooks`).
+      handler(id, importer) {
         if (id === UMWASM_HELPERS_ID) {
           return id;
         }
@@ -78,25 +80,29 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
         }
         // Force .wasm imports as bundled (no-external)
         if (WASM_ID_RE.test(id)) {
-          const resolved = await this.resolve(id, importer);
-          if (!resolved?.id) {
-            return resolved;
-          }
-          let resolvedId = resolved?.id;
-          if (resolvedId && resolvedId.startsWith("file://")) {
-            resolvedId = fileURLToPath(resolvedId);
-          }
-          return {
-            ...resolved,
-            id: resolvedId,
-            external: false,
-            moduleSideEffects: false,
-            resolvedBy: "unwasm",
-            meta: {
-              ...resolved.meta,
-              unwasm: { resolved },
-            },
+          const onResolved = (resolved: ResolvedId | null | undefined) => {
+            if (!resolved?.id) {
+              return resolved;
+            }
+            let resolvedId = resolved.id;
+            if (resolvedId.startsWith("file://")) {
+              resolvedId = fileURLToPath(resolvedId);
+            }
+            return {
+              ...resolved,
+              id: resolvedId,
+              external: false,
+              moduleSideEffects: false,
+              resolvedBy: "unwasm",
+              meta: {
+                ...resolved.meta,
+                unwasm: { resolved },
+              },
+            };
           };
+          // Only await when the host returns a Promise
+          const resolved = this.resolve(id, importer);
+          return resolved instanceof Promise ? resolved.then(onResolved) : onResolved(resolved);
         }
       },
     },
@@ -116,7 +122,7 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
       filter: {
         id: [new RegExp("^" + escapeRegExp(UMWASM_HELPERS_ID) + "$"), WASM_ID_RE],
       },
-      async handler(id) {
+      handler(id) {
         if (id === UMWASM_HELPERS_ID) {
           return getPluginUtils();
         }
@@ -132,14 +138,14 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
 
         this.addWatchFile(idPath);
 
-        const buff = await fs.readFile(idPath);
+        const buff = readFileSync(idPath);
         return buff.toString("binary");
       },
     },
     transform: {
       order: "pre",
       filter: { id: WASM_ID_RE },
-      async handler(code, id) {
+      handler(code, id) {
         const buff = Buffer.from(code, "binary");
 
         let isModule = id.endsWith("?module");
@@ -174,20 +180,25 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
           exports: parsed.exports,
         });
 
-        const _code = isModule
-          ? await getWasmModuleBinding(asset, opts)
-          : await getWasmESMBinding(asset, opts).catch((error) => {
-              if (!opts.silent) {
-                this.warn({
-                  id,
-                  cause: error as Error,
-                  message:
-                    "Failed to load the WebAssembly module; falling back to module mode: " +
-                    (error as Error).message,
-                });
-              }
-              return getWasmModuleBinding(asset, opts);
-            });
+        let _code: string;
+        if (isModule) {
+          _code = getWasmModuleBinding(asset, opts);
+        } else {
+          try {
+            _code = getWasmESMBinding(asset, opts);
+          } catch (error) {
+            if (!opts.silent) {
+              this.warn({
+                id,
+                cause: error as Error,
+                message:
+                  "Failed to load the WebAssembly module; falling back to module mode: " +
+                  (error as Error).message,
+              });
+            }
+            _code = getWasmModuleBinding(asset, opts);
+          }
+        }
 
         return {
           code: _code,
