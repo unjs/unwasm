@@ -12,6 +12,7 @@
   "exports": {
     "./examples/*": "./examples/*",
     "./plugin": "./dist/plugin/index.mjs",
+    "./plugin/rspack": "./dist/plugin/rspack.mjs",
     "./tools": "./dist/tools/index.mjs"
   },
   "scripts": {
@@ -30,7 +31,9 @@
     "magic-string": "^1.4.3"
   },
   "devDependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rspack/core": "^2.1.4",
     "@types/node": "^26.6.5",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitest/coverage-v8": "^5.0.5",
