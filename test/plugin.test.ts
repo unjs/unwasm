@@ -413,8 +413,14 @@ describe("plugin:rspack (specifics)", () => {
         if (!swapped) {
           swapped = true;
           // `sum.wasm` -> `rand.wasm`: different content, so a different hash.
+          // Written rather than copied: on Windows `copyFile` keeps the source's
+          // older mtime, so the watcher never registers the change.
           setTimeout(
-            () => copyFile(r("node_modules/@fixture/wasm/rand.wasm"), `${src}/live.wasm`),
+            async () =>
+              writeFile(
+                join(src, "live.wasm"),
+                await readFile(r("node_modules/@fixture/wasm/rand.wasm")),
+              ),
             250,
           );
         } else if (emitted.at(-1)?.[0] === after) {
