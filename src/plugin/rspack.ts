@@ -53,6 +53,8 @@ interface GeneratedBinding {
   /** Whether the import carried a `?module` query. */
   isModuleRequest: boolean;
   asset: WasmAsset;
+  /** `mtimeMs:size` of the binary when generated, to detect edits cheaply. */
+  stamp: string;
 }
 
 /**
@@ -135,6 +137,9 @@ export class UnwasmRspackPlugin {
       isModuleRequest: boolean,
       onWarn: (message: string) => void,
     ): Promise<string> {
+      // Stat before reading: if the binary changes in between, the stale stamp
+      // only causes one extra regeneration instead of a missed one.
+      const stamp = await statStamp(resolved);
       const source = await fs.readFile(resolved);
       const name = `wasm/${basename(resolved, ".wasm")}-${sha1(source)}.wasm`;
 
@@ -177,24 +182,23 @@ export class UnwasmRspackPlugin {
         `${basename(resolved)}${isModuleRequest ? ".module" : ""}${BINDING_SUFFIX}`,
       );
       virtualModules.writeModule(virtualId, code);
-      generated.set(virtualId, { resolved, isModuleRequest, asset });
+      generated.set(virtualId, { resolved, isModuleRequest, asset, stamp });
       return virtualId;
     }
 
     // On a rebuild rspack replays the already-rewritten request for cached
     // dependencies, so `beforeResolve` never sees the `.wasm` id again. Refresh
     // the bindings of changed binaries up front so edits actually propagate.
-    compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async (watchCompiler) => {
-      const modified = watchCompiler.modifiedFiles;
-      if (!modified?.size) {
-        return;
-      }
+    // Changes are detected by stat rather than `compiler.modifiedFiles`, whose
+    // paths are not guaranteed to match the resolved ones on every platform.
+    compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async () => {
       await Promise.all(
-        [...generated.values()].map((entry) =>
-          modified.has(entry.resolved) && existsSync(entry.resolved)
-            ? generate(entry.resolved, entry.isModuleRequest, (m) => pendingWarnings.push(m))
-            : undefined,
-        ),
+        [...generated.values()].map(async (entry) => {
+          const stamp = await statStamp(entry.resolved).catch(() => undefined);
+          if (stamp && stamp !== entry.stamp) {
+            await generate(entry.resolved, entry.isModuleRequest, (m) => pendingWarnings.push(m));
+          }
+        }),
       );
     });
 
@@ -358,6 +362,11 @@ export class UnwasmRspackPlugin {
 function splitQuery(id: string): [string, string?] {
   const index = id.indexOf("?");
   return index === -1 ? [id] : [id.slice(0, index), id.slice(index + 1)];
+}
+
+async function statStamp(path: string): Promise<string> {
+  const { mtimeMs, size } = await fs.stat(path);
+  return `${mtimeMs}:${size}`;
 }
 
 function warn(compilation: Compilation, opts: UnwasmPluginOptions, message: string) {
