@@ -384,13 +384,18 @@ describe("plugin:rspack (specifics)", () => {
     });
 
     const emitted: string[][] = [];
+    // Per-build details, reported if the expected rebuild never arrives.
+    const rounds: unknown[] = [];
     await new Promise<void>((resolve, reject) => {
       let swapped = false;
       const timer = setTimeout(
-        () => watching.close(() => reject(new Error("watch timed out"))),
+        () =>
+          watching.close(() =>
+            reject(new Error(`watch timed out: ${JSON.stringify({ after, rounds }, null, 2)}`)),
+          ),
         20_000,
       );
-      const watching = compiler.watch({ poll: 100 }, (error) => {
+      const watching = compiler.watch({ poll: 100 }, (error, stats: any) => {
         // Surface the real failure instead of letting it time out below.
         if (error) {
           clearTimeout(timer);
@@ -398,6 +403,13 @@ describe("plugin:rspack (specifics)", () => {
           return;
         }
         emitted.push(existsSync(`${dir}/wasm`) ? readdirSync(`${dir}/wasm`).sort() : []);
+        const { errors, warnings } = stats.toJson({ errors: true, warnings: true });
+        rounds.push({
+          wasm: emitted.at(-1),
+          modified: [...((compiler as any).modifiedFiles || [])],
+          removed: [...((compiler as any).removedFiles || [])],
+          problems: [...errors, ...warnings].map((p: any) => p.message.slice(0, 300)),
+        });
         if (!swapped) {
           swapped = true;
           // `sum.wasm` -> `rand.wasm`: different content, so a different hash.
