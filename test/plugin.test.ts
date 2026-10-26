@@ -92,6 +92,11 @@ for (const { builder, buildFn } of builds) {
 
 // Behaviour specific to the rspack integration, kept out of the shared matrix.
 describe("plugin:rspack (specifics)", () => {
+  it("rejects rspack versions before 2", () => {
+    const compiler = { rspack: { rspackVersion: "1.7.12" } } as any;
+    expect(() => unwasmRspack().apply(compiler)).toThrow("requires rspack >= 2 (found 1.7.12)");
+  });
+
   it("distinguishes ?module from a plain import of the same binary", async () => {
     const { output } = await _rspackBuild("fixture/mixed-module-import.mjs", "rspack-mixed", {});
     const mod = await evalModule(output[0].code, { url: r("fixture/mixed-module-import.mjs") });

@@ -79,6 +79,13 @@ export class UnwasmRspackPlugin {
   constructor(private readonly opts: UnwasmPluginOptions = {}) {}
 
   apply(compiler: Compiler): void {
+    // Only rspack 2 is supported and tested, and there is no peer dependency to
+    // enforce that at install time.
+    const { rspackVersion } = compiler.rspack;
+    if (Number.parseInt(rspackVersion, 10) < 2) {
+      throw new Error(`[unwasm] The rspack plugin requires rspack >= 2 (found ${rspackVersion}).`);
+    }
+
     const opts = this.opts;
     const { experiments, ExternalsPlugin, sources } = compiler.rspack;
 

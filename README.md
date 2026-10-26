@@ -112,6 +112,8 @@ The same plugin works with [Rolldown](https://rolldown.rs) and [Vite](https://vi
 
 ###### Rspack
 
+Requires Rspack 2 or later.
+
 ```js
 // rspack.config.mjs
 import { unwasmRspack } from "unwasm/plugin/rspack";
