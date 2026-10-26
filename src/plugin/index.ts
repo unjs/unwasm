@@ -1,9 +1,16 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { basename } from "node:path";
+import { basename, dirname, isAbsolute, resolve } from "node:path";
 import MagicString from "magic-string";
 import { parseWasm } from "../tools";
-import type { RawSourceMap, RenderedChunk, ResolvedId, UnwasmPlugin } from "./types";
+import type {
+  PluginContext,
+  RawSourceMap,
+  RenderedChunk,
+  ResolvedId,
+  TransformResult,
+  UnwasmPlugin,
+} from "./types";
 import { getWasmESMBinding, getWasmModuleBinding } from "./runtime/binding";
 import { getPluginUtils } from "./runtime/utils";
 import {
@@ -20,6 +27,10 @@ export type { UnwasmPluginOptions } from "./shared";
 export type * from "./types";
 
 const WASM_ID_RE = /\.wasm(?:\?.*)?$/i;
+const JS_ID_RE = /\.[cm]?[jt]sx?(?:\?.*)?$/i;
+
+// `new URL("<static path>", import.meta.url)`
+const ASSET_URL_RE = /new\s+URL\(\s*(["'`])([^"'`$?#]+)\1\s*,\s*import\.meta\.url\s*\)/g;
 
 export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
   const assets: Record<string, WasmAsset> = Object.create(null);
@@ -144,8 +155,12 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
     },
     transform: {
       order: "pre",
-      filter: { id: WASM_ID_RE },
+      filter: { id: opts.assetURLs ? [WASM_ID_RE, JS_ID_RE] : WASM_ID_RE },
       handler(code, id) {
+        if (!WASM_ID_RE.test(id)) {
+          return opts.assetURLs ? transformAssetURLs.call(this, code, id) : undefined;
+        }
+
         const buff = Buffer.from(code, "binary");
 
         let isModule = id.endsWith("?module");
@@ -254,6 +269,44 @@ export function unwasm(opts: UnwasmPluginOptions): UnwasmPlugin {
       }
     },
   };
+}
+
+function transformAssetURLs(this: PluginContext, code: string, id: string): TransformResult {
+  if (!isAbsolute(id) || !code.includes("import.meta.url")) {
+    return;
+  }
+  const dir = dirname(id.split("?")[0]);
+  let s: MagicString | undefined;
+  for (const match of code.matchAll(ASSET_URL_RE)) {
+    const path = match[2];
+    // Leave absolute URLs and JS files (e.g. workers) to the bundler
+    if (/^(?:[a-z][\w+.-]*:|\/)/i.test(path) || JS_ID_RE.test(path)) {
+      continue;
+    }
+    const file = resolve(dir, path);
+    if (!statSync(file, { throwIfNoEntry: false })?.isFile()) {
+      continue;
+    }
+    this.addWatchFile(file);
+    const ref = this.emitFile({
+      type: "asset",
+      name: basename(file),
+      source: readFileSync(file),
+    });
+    // Hosts that can't emit files (e.g. dev servers) keep the original URL, which still resolves
+    if (!ref) {
+      continue;
+    }
+    s ||= new MagicString(code);
+    const index = match.index as number;
+    s.overwrite(index, index + match[0].length, `new URL(import.meta.ROLLUP_FILE_URL_${ref})`);
+  }
+  if (s) {
+    return {
+      code: s.toString(),
+      map: s.generateMap({ hires: true, includeContent: true }) as RawSourceMap,
+    };
+  }
 }
 
 /** @deprecated use unwasm export */

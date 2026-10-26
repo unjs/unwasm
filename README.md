@@ -112,6 +112,7 @@ export default {
 
 - `esmImport` (default: `false`): Import the `.wasm` file directly instead of bundling it. Required on Cloudflare Workers, and works in any environment with native `.wasm` module imports.
 - `lazy` (default: `false`): Import `.wasm` files through a lazily evaluated proxy, for runtimes without top-level `await`.
+- `assetURLs` (default: `false`): Emit files referenced with `new URL("./file", import.meta.url)` as assets and rewrite the references to the emitted files. Emscripten and wasm-bindgen outputs use this pattern to locate their `.wasm` and `.data` files at runtime. Only static paths to existing non-JS files are rewritten. The files are loaded at runtime with `fs` or `fetch`, so this does not replace `esmImport` on Cloudflare Workers.
 
 ## Tools
 

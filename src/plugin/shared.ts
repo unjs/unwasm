@@ -18,6 +18,15 @@ export interface UnwasmPluginOptions {
   lazy?: boolean;
 
   /**
+   * Emit files referenced with `new URL("./file", import.meta.url)` (e.g. emscripten or
+   * wasm-bindgen outputs locating their `.wasm` and `.data` files) as assets, and rewrite
+   * the references to point to the emitted files.
+   *
+   * @default false
+   */
+  assetURLs?: boolean;
+
+  /**
    * Suppress all warnings from the plugin.
    *
    * @default false

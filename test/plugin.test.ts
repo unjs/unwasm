@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
+import { readFile, rm } from "node:fs/promises";
 import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
@@ -66,6 +66,22 @@ for (const { builder, buildFn } of builds) {
       expect(mod.test()).toBe("OK");
     });
 
+    it("assetURLs", async () => {
+      const name = `${builder}-asset-url`;
+      const { output } = await buildFn("fixture/asset-url.mjs", name, {
+        assetURLs: true,
+      });
+
+      const assets = (output as any[]).filter((o) => o.type === "asset").map((o) => o.fileName);
+      // Vite lib builds don't hash asset names
+      expect(assets).toContainEqual(expect.stringMatching(/data(-[\w-]+)?\.txt$/));
+      expect(assets).toContainEqual(expect.stringMatching(/sum(-[\w-]+)?\.wasm$/));
+
+      // Import from disk so `import.meta.url` points to the output directory
+      const mod = await import(r(`.tmp/${name}/index.mjs`));
+      expect(await mod.test(readFile)).toBe("OK");
+    });
+
     it("esm-integration-missing-import", async () => {
       const error = await buildFn(
         "fixture/esm-integration-missing-import.mjs",
@@ -105,6 +121,37 @@ describe("plugin:sync", () => {
   });
 });
 
+describe("plugin:assetURLs", () => {
+  const id = r("node_modules/@fixture/asset-url/dist/index.mjs");
+  const code = readFileSync(id, "utf8");
+  const transform = (opts: UnwasmPluginOptions, ref: string) => {
+    const plugin = unwasm(opts);
+    const ctx = {
+      addWatchFile: () => {},
+      emitFile: () => ref,
+      warn: () => {},
+    };
+    return plugin.transform.handler.call(ctx as any, code, id) as { code: string } | undefined;
+  };
+
+  it("rewrites static URLs to existing non-JS files", () => {
+    const result = transform({ assetURLs: true }, "ref");
+    expect(result?.code.match(/new URL\(import\.meta\.ROLLUP_FILE_URL_ref\)/g)).toHaveLength(2);
+    expect(result?.code).toContain('new URL("./missing.bin", import.meta.url)');
+    expect(result?.code).toContain('new URL("./worker.mjs", import.meta.url)');
+    expect(result?.code).toContain("new URL(`./${name}.bin`, import.meta.url)");
+  });
+
+  it("keeps original URLs when files can't be emitted", () => {
+    expect(transform({ assetURLs: true }, "")).toBeUndefined();
+  });
+
+  it("is disabled by default", () => {
+    expect(unwasm({}).transform.filter.id.toString()).toBe(/\.wasm(?:\?.*)?$/i.toString());
+    expect(transform({}, "ref")).toBeUndefined();
+  });
+});
+
 // --- Utils ---
 
 async function _rollupBuild(entry: string, name: string, pluginOpts: UnwasmPluginOptions) {
@@ -137,6 +184,8 @@ async function _viteBuild(entry: string, name: string, pluginOpts: UnwasmPluginO
   const build = await viteBuild({
     logLevel: "warn",
     root: dirname(r(entry)),
+    // Resolve emitted file URLs relative to `import.meta.url`
+    base: "./",
     plugins: [unwasm(pluginOpts)],
     build: {
       lib: { entry: r(entry), formats: ["es"] },
