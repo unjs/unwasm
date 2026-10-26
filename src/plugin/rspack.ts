@@ -195,7 +195,11 @@ export class UnwasmRspackPlugin {
     compiler.hooks.compilation.tap(
       PLUGIN_NAME,
       (compilation, { normalModuleFactory: moduleFactory }) => {
-        const resolver = moduleFactory.getResolver("normal", {});
+        // `.wasm` imports are ESM imports; without an explicit dependency type
+        // the resolver ignores `import` export conditions, and a binary exposed
+        // only through them would fall through to rspack's native wasm handling.
+        // `beforeResolve` data carries no dependency type to forward instead.
+        const resolver = moduleFactory.getResolver("normal", { dependencyType: "esm" });
 
         // Keep binaries resolved by earlier builds in the watch set; their
         // requests are cached and will not pass through `beforeResolve` again.

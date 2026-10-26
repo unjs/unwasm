@@ -12,7 +12,7 @@ import { UnwasmPluginOptions, unwasm } from "../src/plugin";
 import { unwasmRspack } from "../src/plugin/rspack";
 import { sha1 } from "../src/plugin/shared";
 import { originalPositionFor, sourceContentFor, TraceMap } from "@jridgewell/trace-mapping";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -106,6 +106,46 @@ describe("plugin:rspack (specifics)", () => {
     expect(error.message).toContain("does-not-exist.wasm");
   });
 
+  // A binary exposed only under the `import` condition must still be resolved
+  // by the plugin, rather than silently falling through to rspack's native
+  // `webassembly/async` handling.
+  it("resolves .wasm exposed through `import` export conditions", async () => {
+    const dir = r(".tmp/rspack-conditions");
+    const src = r(".tmp/rspack-conditions-src");
+    const pkg = join(src, "node_modules/cond-pkg");
+    await mkdir(pkg, { recursive: true });
+    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), join(pkg, "sum.wasm"));
+    await writeFile(
+      join(pkg, "package.json"),
+      JSON.stringify({ name: "cond-pkg", exports: { "./sum.wasm": { import: "./sum.wasm" } } }),
+    );
+    await writeFile(
+      join(src, "entry.mjs"),
+      `import { sum } from "cond-pkg/sum.wasm";\nexport const test = () => sum(1, 2);\n`,
+    );
+
+    const stats = await _rspack({
+      entry: join(src, "entry.mjs"),
+      context: src,
+      target: ["node", "es2022"],
+      output: {
+        path: dir,
+        filename: "[name].mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        asyncChunks: false,
+        clean: true,
+      },
+      plugins: [unwasmRspack({})],
+    });
+    const { errors, assets } = stats.toJson({ errors: true, assets: true });
+    expect(errors).toEqual([]);
+    // Inlined by unwasm; rspack's native handling would emit a `.wasm` asset.
+    expect(assets.map((a: any) => a.name).filter((n: string) => n.endsWith(".wasm"))).toEqual([]);
+    const mod = await import(pathToFileURL(join(dir, "main.mjs")).href);
+    expect(mod.test()).toBe(3);
+  });
+
   // Regression guard: the plugin must not depend on `asyncChunks` being off.
   // `[name]` is required because `modern-module` emits a separate runtime chunk.
   it("supports code splitting with rspack's default async chunks", async () => {
@@ -177,7 +217,7 @@ describe("plugin:rspack (specifics)", () => {
     const dir = r(".tmp/rspack-prune");
     const src = r(".tmp/rspack-prune-src");
     await mkdir(src, { recursive: true });
-    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), `${src}/a.wasm`);
+    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), join(src, "a.wasm"));
     await writeFile(
       `${src}/entry.mjs`,
       `import { sum } from "./a.wasm";\nexport const test = () => sum(1, 2);\n`,
@@ -252,10 +292,11 @@ describe("plugin:rspack (specifics)", () => {
     });
 
     expect(initial!.wasm).toHaveLength(1);
-    expect(initial!.watched).toContain(`${src}/a.wasm`);
+    // `join`, as rspack reports native (`\`-separated on Windows) paths.
+    expect(initial!.watched).toContain(join(src, "a.wasm"));
     // Import gone: no longer emitted, and dropped from the watch set.
     expect(final!.wasm).toEqual([]);
-    expect(final!.watched).not.toContain(`${src}/a.wasm`);
+    expect(final!.watched).not.toContain(join(src, "a.wasm"));
   }, 30_000);
 
   it("rebuilds and re-emits when a watched .wasm changes", async () => {
