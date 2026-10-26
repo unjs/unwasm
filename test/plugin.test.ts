@@ -1,6 +1,6 @@
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { existsSync, readdirSync } from "node:fs";
-import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, utimes, writeFile } from "node:fs/promises";
 import { it, describe, expect } from "vitest";
 import { evalModule } from "mlly";
 import { nodeResolve as rollupNodeResolve } from "@rollup/plugin-node-resolve";
@@ -297,6 +297,56 @@ describe("plugin:rspack (specifics)", () => {
     // Import gone: no longer emitted, and dropped from the watch set.
     expect(final!.wasm).toEqual([]);
     expect(final!.watched).not.toContain(join(src, "a.wasm"));
+  }, 30_000);
+
+  // Virtual modules are absent from disk, so watching them makes the watcher
+  // report them as removed and rebuild once right after startup.
+  it("does not rebuild an idle watch after the initial build", async () => {
+    const src = r(".tmp/rspack-idle-src");
+    await mkdir(src, { recursive: true });
+    await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), join(src, "a.wasm"));
+    await writeFile(
+      join(src, "entry.mjs"),
+      `import { sum } from "./a.wasm";\nexport const test = () => sum(1, 2);\n`,
+    );
+    // Files written just before watching count as changed on the first scan;
+    // backdate them so only the plugin can cause a rebuild.
+    const past = new Date(Date.now() - 60_000);
+    for (const file of ["a.wasm", "entry.mjs"]) {
+      await utimes(join(src, file), past, past);
+    }
+
+    const compiler = _rspack.compiler({
+      entry: join(src, "entry.mjs"),
+      context: src,
+      target: ["node", "es2022"],
+      output: {
+        path: r(".tmp/rspack-idle"),
+        filename: "[name].mjs",
+        chunkFormat: "module",
+        library: { type: "modern-module" },
+        asyncChunks: false,
+        clean: true,
+      },
+      plugins: [unwasmRspack({})],
+    });
+
+    let builds = 0;
+    await new Promise<void>((resolve, reject) => {
+      const watching = compiler.watch({ poll: 100 }, (error) => {
+        if (error) {
+          watching.close(() => reject(error));
+          return;
+        }
+        // Only the first build schedules the close, so any rebuild within the
+        // idle window is counted.
+        if (++builds === 1) {
+          setTimeout(() => watching.close(() => resolve()), 1000);
+        }
+      });
+    });
+
+    expect(builds).toBe(1);
   }, 30_000);
 
   it("rebuilds and re-emits when a watched .wasm changes", async () => {

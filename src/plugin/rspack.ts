@@ -83,7 +83,9 @@ export class UnwasmRspackPlugin {
     // Keyed by content hash, so this stays valid across rebuilds.
     const parseCache: Record<string, WasmInterface> = Object.create(null);
 
-    const helpersId = join(compiler.context, "unwasm-helpers.mjs");
+    // Virtual, but shadows any real file at this path; the dot-prefixed name
+    // keeps a clash with project sources unlikely.
+    const helpersId = join(compiler.context, ".unwasm-helpers.mjs");
 
     // Generated bindings are served from an in-memory layer instead of a loader,
     // which keeps the whole plugin in a single module and lets the (async) parse
@@ -181,11 +183,15 @@ export class UnwasmRspackPlugin {
 
     // On a rebuild rspack replays the already-rewritten request for cached
     // dependencies, so `beforeResolve` never sees the `.wasm` id again. Refresh
-    // every known binding up front so edits to a binary actually propagate.
-    compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async () => {
+    // the bindings of changed binaries up front so edits actually propagate.
+    compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async (watchCompiler) => {
+      const modified = watchCompiler.modifiedFiles;
+      if (!modified?.size) {
+        return;
+      }
       await Promise.all(
         [...generated.values()].map((entry) =>
-          existsSync(entry.resolved)
+          modified.has(entry.resolved) && existsSync(entry.resolved)
             ? generate(entry.resolved, entry.isModuleRequest, (m) => pendingWarnings.push(m))
             : undefined,
         ),
@@ -206,6 +212,17 @@ export class UnwasmRspackPlugin {
         for (const entry of generated.values()) {
           compilation.fileDependencies.add(entry.resolved);
         }
+
+        // Virtual modules do not exist on disk, so the watcher reports them as
+        // removed on its first scan and triggers a spurious rebuild. They only
+        // change through `generate`, which `watchRun` already drives from the
+        // binaries they depend on, so they need no watching of their own.
+        compilation.hooks.finishModules.tap(PLUGIN_NAME, () => {
+          compilation.fileDependencies.delete(helpersId);
+          for (const virtualId of generated.keys()) {
+            compilation.fileDependencies.delete(virtualId);
+          }
+        });
 
         moduleFactory.hooks.beforeResolve.tapPromise(PLUGIN_NAME, async (data) => {
           const request = data.request;
