@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.6.3
+
+[compare changes](https://github.com/unjs/unwasm/compare/v0.6.2...v0.6.3)
+
+### 🚀 Enhancements
+
+- **plugin:** Add rspack plugin ([#107](https://github.com/unjs/unwasm/pull/107))
+
+### 🩹 Fixes
+
+- **plugin:** Require rspack >= 2 in the rspack plugin ([935c88f](https://github.com/unjs/unwasm/commit/935c88f))
+- **plugin:** Detect changed rspack wasm binaries by content ([7426e90](https://github.com/unjs/unwasm/commit/7426e90))
+
+### 🏡 Chore
+
+- Update deps ([a53eae7](https://github.com/unjs/unwasm/commit/a53eae7))
+
+### ✅ Tests
+
+- Report rebuild details when the rspack wasm watch test times out ([92b58d6](https://github.com/unjs/unwasm/commit/92b58d6))
+- Write instead of copy the swapped binary in the rspack watch test ([d04d697](https://github.com/unjs/unwasm/commit/d04d697))
+
+### ❤️ Contributors
+
+- Pooya Parsa <pooya@pi0.io>
+- Pi0x <x@pi0.io>
+
 ## v0.6.2
 
 [compare changes](https://github.com/unjs/unwasm/compare/v0.6.1...v0.6.2)
