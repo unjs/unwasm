@@ -3,6 +3,7 @@ import {
   UNWASM_EXTERNAL_PREFIX,
   WasmAsset,
   UnwasmPluginOptions,
+  gzip,
 } from "../shared";
 import { getWasmImports } from "./imports";
 
@@ -12,7 +13,9 @@ export function getWasmESMBinding(asset: WasmAsset, opts: UnwasmPluginOptions) {
 
   const instantiateCode: string = opts.esmImport
     ? getESMImportInstantiate(asset, autoImports.code)
-    : getBase64Instantiate(asset, autoImports.code);
+    : opts.compress
+      ? getGzipBase64Instantiate(asset, autoImports.code)
+      : getBase64Instantiate(asset, autoImports.code);
 
   return opts.lazy !== true && autoImports.resolved
     ? getExports(asset, instantiateCode)
@@ -56,6 +59,19 @@ ${importsCode}
 function _instantiate(imports = _imports) {
   const _data = base64ToUint8Array("${asset.source.toString("base64")}")
   return WebAssembly.instantiate(_data, imports)  }
+  `;
+}
+
+/** Get the code to instantiate module from inlined, gzip-compressed base64 data */
+function getGzipBase64Instantiate(asset: WasmAsset, importsCode: string) {
+  return /* js */ `
+import { base64ToUint8Array, gunzip } from "${UMWASM_HELPERS_ID}";
+
+${importsCode}
+
+function _instantiate(imports = _imports) {
+  const _dataPromise = gunzip(base64ToUint8Array("${gzip(asset.source).toString("base64")}"))
+  return _dataPromise.then((_data) => WebAssembly.instantiate(_data, imports))  }
   `;
 }
 
