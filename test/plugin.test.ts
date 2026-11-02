@@ -36,6 +36,19 @@ for (const { builder, buildFn } of builds) {
       expect(mod.test()).toBe("OK");
     });
 
+    it("inline compressed", async () => {
+      const { output } = await buildFn(
+        "fixture/static-import.mjs",
+        `${builder}-inline-compressed`,
+        { compress: true },
+      );
+      const code = output[0].code;
+      const mod = await evalModule(code, {
+        url: r("fixture/static-import.mjs"),
+      });
+      expect(mod.test()).toBe("OK");
+    });
+
     it("esmImport", async () => {
       const name = `${builder}-esm-import`;
       const { output } = await buildFn("fixture/dynamic-import.mjs", name, {
@@ -99,7 +112,9 @@ describe("plugin:rspack (specifics)", () => {
 
   it("distinguishes ?module from a plain import of the same binary", async () => {
     const { output } = await _rspackBuild("fixture/mixed-module-import.mjs", "rspack-mixed", {});
-    const mod = await evalModule(output[0].code, { url: r("fixture/mixed-module-import.mjs") });
+    const mod = await evalModule(output[0].code, {
+      url: r("fixture/mixed-module-import.mjs"),
+    });
     expect(await mod.test()).toBe("OK");
   });
 
@@ -122,7 +137,10 @@ describe("plugin:rspack (specifics)", () => {
     await copyFile(r("node_modules/@fixture/wasm/sum.wasm"), join(pkg, "sum.wasm"));
     await writeFile(
       join(pkg, "package.json"),
-      JSON.stringify({ name: "cond-pkg", exports: { "./sum.wasm": { import: "./sum.wasm" } } }),
+      JSON.stringify({
+        name: "cond-pkg",
+        exports: { "./sum.wasm": { import: "./sum.wasm" } },
+      }),
     );
     await writeFile(
       join(src, "entry.mjs"),
@@ -403,7 +421,10 @@ describe("plugin:rspack (specifics)", () => {
           return;
         }
         emitted.push(existsSync(`${dir}/wasm`) ? readdirSync(`${dir}/wasm`).sort() : []);
-        const { errors, warnings } = stats.toJson({ errors: true, warnings: true });
+        const { errors, warnings } = stats.toJson({
+          errors: true,
+          warnings: true,
+        });
         rounds.push({
           wasm: emitted.at(-1),
           modified: [...((compiler as any).modifiedFiles || [])],
@@ -446,7 +467,11 @@ describe("plugin:sync", () => {
     const plugin = unwasm({});
     const wasmPath = r("../examples/add-esmi.wasm");
     const ctx = {
-      resolve: (id: string) => ({ id: "file://" + id, external: false, meta: {} }),
+      resolve: (id: string) => ({
+        id: "file://" + id,
+        external: false,
+        meta: {},
+      }),
       addWatchFile: () => {},
       emitFile: () => "",
       warn: () => {},
@@ -567,7 +592,10 @@ async function _rspackBuild(entry: string, name: string, pluginOpts: UnwasmPlugi
   const { errors, assets } = stats.toJson({ errors: true, assets: true });
   if (errors?.length) {
     // Mirror rolldown's aggregated shape so the shared assertions apply.
-    throw Object.assign(new Error(errors[0].message), { errors, code: errors[0].code });
+    throw Object.assign(new Error(errors[0].message), {
+      errors,
+      code: errors[0].code,
+    });
   }
 
   // Entry chunk first, matching the other builders' output ordering.

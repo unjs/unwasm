@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 
 export interface UnwasmPluginOptions {
   /**
@@ -23,6 +24,13 @@ export interface UnwasmPluginOptions {
    * @default false
    */
   silent?: boolean;
+
+  /**
+   * Compress `.wasm` files with gzip before encoding them as base64 strings.
+   *
+   * @default false
+   */
+  compress?: boolean;
 }
 
 export type WasmAsset = {
@@ -43,4 +51,8 @@ export function sha1(source: Buffer) {
 
 export function escapeRegExp(string: string): string {
   return string.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`);
+}
+
+export function gzip(source: Buffer): Buffer {
+  return gzipSync(source);
 }

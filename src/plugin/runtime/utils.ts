@@ -22,6 +22,12 @@ export function base64ToUint8Array(str) {
   return bytes;
 }
 
+export function gunzip(buf) {
+  return new Response(
+    new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip")),
+  ).arrayBuffer();
+}
+
 export function createLazyWasmModule(_instantiator) {
   const _exports = Object.create(null);
   let _loaded;

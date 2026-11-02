@@ -130,6 +130,7 @@ export default {
 
 - `esmImport` (default: `false`): Import the `.wasm` file directly instead of bundling it. Required on Cloudflare Workers, and works in any environment with native `.wasm` module imports.
 - `lazy` (default: `false`): Import `.wasm` files through a lazily evaluated proxy, for runtimes without top-level `await`.
+- `compress` (default: `false`): Compress the `.wasm` file with gzip before encoding it with Base64. Works in any environment with the Compression Streams API.
 
 ## Tools
 
